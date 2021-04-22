@@ -1,5 +1,5 @@
 <p align="center"><img height="120px" src="./info/logo.png"></p>
-<h3 align="center">localDeskX - Program for remote control of a computer in a local network.</h1>
+<h3 align="center">localDeskX - Remote control in a local network.</h1>
 
 ## About project
 
