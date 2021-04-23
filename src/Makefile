@@ -1,11 +1,11 @@
-
+.DEFAULT_GOAL := all
 FLAGS = -lX11 -lXext -lcrypto -lXtst -g1 -Ofast -std=c++17
 CC = g++
 
-server:
+lxds:
 	$(CC) server/*.cpp $(FLAGS) -o ldxs 
 
-client:
+ldxc:
 	$(CC) client/*.cpp $(FLAGS) -o ldxc 
 
-all: server client
+all: lxds ldxc
