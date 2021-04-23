@@ -8,11 +8,11 @@ x11_server::x11_server(uint8_t val) {
 	scr   = XDefaultScreen(disp);
 	root  = DefaultRootWindow(disp);
 	depth = DefaultDepth(disp, scr);
-	comp = 12;
+	comp  = val;
 	XGetWindowAttributes(disp, root, &attrs);
 
 	img = XShmCreateImage(disp, DefaultVisual(disp, 0), depth, ZPixmap,
-						  nullptr, &shm, attrs.width, attrs.height);
+						  nullptr, &shm, attrs.width, attrs.height   );
 	assert(img);
 
 	sharedmem_alloc();
@@ -60,21 +60,14 @@ headers x11_server::get_headers(void) {
 	return data;
 }
 
-char *x11_server::pix_pointer(void) {
-	XSync(disp, true);
-	XShmGetImage(disp, root, img, 0, 0, AllPlanes);
-	return img->data;
-}
-
 void x11_server::pixels_vector(std::vector<pix> &arr) {
-	constexpr size_t lim = std::numeric_limits<uint16_t>::max() - 1;
 	uint32_t size = img->bytes_per_line * img->height;
 	pix one;
 
 	auto cmp = [&](char *pixs, pix &d) {
-		return abs(pixs[0] - d.r) < 10
-			&& abs(pixs[1] - d.g) < 10
-			&& abs(pixs[2] - d.b) < 10;
+		return abs(pixs[0] - d.r) < comp
+			&& abs(pixs[1] - d.g) < comp
+			&& abs(pixs[2] - d.b) < comp;
 	};
 
 	auto cpy = [](char *pixs, pix &one) {
@@ -83,17 +76,18 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 		one.b = pixs[2];
 	};
 
-	char *from = pix_pointer();
-	cpy(from, one);
+	XShmGetImage(disp, root, img, 0, 0, AllPlanes);
+	cpy(img->data, one);
 
 	for (uint32_t i = 0; i < size; i += 4) {
-		if (cmp(from + i, one) && one.num < lim) {
+		if (cmp(img->data + i, one)
+			&& one.num  < BLOCKMAX) {
 			one.num++;
 			continue;
 		}
 
 		arr.push_back(one);
-		cpy(from + i, one);
+		cpy(img->data + i, one);
 		one.num = 1;
 	}
 }

@@ -51,9 +51,11 @@ void start_streaming(int argc, char **argv,
 
 	size_t size = hdrs.width * hdrs.height
 				* BSIZE;
-	byte buff[size];
+	byte *buff = new byte[size];
 	uint32_t blen;
 	byte *bp = reinterpret_cast<byte *>(&blen);
+
+	assert(buff);
 
 	for (;;) {
 		BREAK_IF(!net->recv_data(bp, U32S));
@@ -68,8 +70,9 @@ void start_streaming(int argc, char **argv,
 		evsize = evsize * 2 + U16S * 2 + 1;
 
 		BREAK_IF(!net->send_data(buff, evsize));
-		x11.render();
 	}
+
+	delete[] buff;
 }
 
 int main(int argc, char *argv[]) {

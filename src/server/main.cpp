@@ -30,10 +30,11 @@ void start_streaming(uint8_t compression) {
 
 	size_t maxb = U32S + BSIZE * x11->pixs_num();
 	headers hdrs = x11->get_headers();
+	byte *buff = new byte[maxb];
 	std::vector<pix> vec;
-	byte buff[maxb];
 	uint16_t x, y;
 
+	assert (buff);
 	hdrs.to(buff);
 	RET_IF_VOID(!net->send_data(buff, hdrs.size));
 
@@ -41,7 +42,7 @@ void start_streaming(uint8_t compression) {
 		x11->pixels_vector(vec);
 		int size = pack_pixs(buff, vec);
 
-		BREAK_IF(!net->send_data(buff, size));
+		BREAK_IF(!net->send_data(buff, size ));
 		BREAK_IF(!net->recv_data(buff, MSIZE));
 
 		memcpy(&x, buff, U16S);
@@ -57,6 +58,8 @@ void start_streaming(uint8_t compression) {
 
 		vec.clear();
 	}
+
+	delete[] buff;
 }
 
 void send_screenshot(uint8_t compression) {

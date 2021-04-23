@@ -14,7 +14,7 @@ tcp_net::tcp_net(int port) {
 
 	char *popt = reinterpret_cast<char *>(&to);
 	int opt = sizeof(to);
-	to.tv_sec  = 5;
+	to.tv_sec  = 0;
 	to.tv_usec = 0;
 
 	setsockopt(sock1, SOL_SOCKET, SO_RCVTIMEO, popt, opt);

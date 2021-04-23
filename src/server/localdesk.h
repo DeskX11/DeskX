@@ -22,6 +22,7 @@
 #define RET_IF(cond, value)		if ((cond)) return (value);
 #define RET_IF_VOID(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
+#define BLOCKMAX 65533
 
 constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
@@ -97,13 +98,12 @@ private:
 	XWindowAttributes attrs;
 	XShmSegmentInfo shm;
 	bool inited = false;
-	float comp;
+	uint8_t comp;
 	Window root;
 	XImage *img;
 	int scr, depth;
 
 	void sharedmem_alloc(void);
-	char *pix_pointer(void);
 
 public:
 	void set_mouse(uint16_t, uint16_t);

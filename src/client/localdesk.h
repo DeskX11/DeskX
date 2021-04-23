@@ -97,7 +97,6 @@ public:
 	void set_pixels(byte *, uint32_t);
 	x11_client(headers, bool);
 	~x11_client(void);
-	void render(void);
 };
 
 #endif

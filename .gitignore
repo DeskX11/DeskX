@@ -30,5 +30,7 @@
 *.exe
 *.out
 *.app
+ldxc
+ldxs
 
 .DS_Store

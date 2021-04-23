@@ -34,7 +34,7 @@ Window x11_client::new_window(int width, int height) {
 	int white = WhitePixel(disp, scr);
 
 	Window w = XCreateSimpleWindow(disp, RootWindow(disp, scr), 0, 0,
-								   width, height, 1, black, white);
+								   width, height, 1, black, white  );
 	XMapWindow(disp, w);
 
 	return w;
@@ -70,11 +70,9 @@ void x11_client::set_pixels(byte *ptr, uint32_t blocks) {
 			pos++;
 		}
 	}
-}
 
-void x11_client::render(void) {
-	XShmPutImage(disp, win, gc, img, 0, 0, 0, 0, width, height, false);
-	XSync(disp, false);
+	XShmPutImage(disp, win, gc, img, 0, 0, 0, 0,
+				 width, height, false         );
 }
 
 size_t x11_client::get_events(byte *buff) {
@@ -85,7 +83,7 @@ size_t x11_client::get_events(byte *buff) {
 	Window r;
 
 	XQueryPointer(disp, win, &r, &r, &rx,
-				  &ry, &rx, &ry, &mask);
+				  &ry, &rx, &ry, &mask );
 	uint16_t x = (rx < 0) ? 0 : rx;
 	uint16_t y = (ry < 0) ? 0 : ry;
 
@@ -115,7 +113,6 @@ size_t x11_client::get_events(byte *buff) {
 
 		default: continue;
 		}
-
 
 		p[i * 2 + 1] = type;
 		p[i * 2 + 2] = id;
