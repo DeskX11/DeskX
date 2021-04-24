@@ -120,13 +120,13 @@ void write_data(byte *buff, uint32_t blocks) {
 
 	for (unsigned int i = 0; i < blocks; i++) {
 		size_t shift = i * BSIZE;
-		uint16_t len;
+		uint8_t len;
 		uint8_t r, g, b;
 
-		memcpy(&len, buff + shift, U16S);
-		r = buff[shift + U16S];
-		g = buff[shift + U16S + 1];
-		b = buff[shift + U16S + 2];
+		memcpy(&len, buff + shift, U8TS);
+		r = buff[shift + U8TS];
+		g = buff[shift + U8TS + 1];
+		b = buff[shift + U8TS + 2];
 		fs << "rgb(" << static_cast<int>(r) << ", "
 		   << static_cast<int>(g) << ", "
 		   << static_cast<int>(b) << "): "

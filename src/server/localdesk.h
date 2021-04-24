@@ -23,12 +23,12 @@
 #define RET_IF_VOID(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
 #define SOCKBUF  (uint32_t)50368000
-#define BLOCKMAX 65533
+#define BLOCKMAX 255
 
 constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
 constexpr size_t U8TS = sizeof(uint8_t);
-constexpr size_t BSIZE = U16S + 3;
+constexpr size_t BSIZE = U8TS + 3;
 constexpr size_t MSIZE = U16S * 2 + 1;
 
 typedef unsigned char byte;
@@ -47,7 +47,7 @@ struct sddr_struct {
 };
 
 struct pix {
-	uint16_t num = 0;
+	uint8_t num = 0;
 	char r, g, b;
 };
 

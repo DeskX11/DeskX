@@ -16,10 +16,10 @@ int pack_pixs(byte *buff, std::vector<pix> &vec) {
 	byte *ptr = buff + U32S;
 
 	for (size_t i = 0; i < size; i++) {
-		memcpy(ptr + i * BSIZE, &vec[i].num, U16S);
-		ptr[i * BSIZE + U16S + 0] = vec[i].r;
-		ptr[i * BSIZE + U16S + 1] = vec[i].g;
-		ptr[i * BSIZE + U16S + 2] = vec[i].b;
+		memcpy(ptr + i * BSIZE, &vec[i].num, U8TS);
+		ptr[i * BSIZE + U8TS + 0] = vec[i].r;
+		ptr[i * BSIZE + U8TS + 1] = vec[i].g;
+		ptr[i * BSIZE + U8TS + 2] = vec[i].b;
 	}
 
 	return size * BSIZE + U32S;
