@@ -1,4 +1,4 @@
-<p align="center"><img height="120px" src="./info/logo.png"></p>
+<p align="center"><img height="120px" src="./info/logo.png?1"></p>
 <h3 align="center">localDeskX - Remote control in a local network.</h1>
 
 ## About project
@@ -16,5 +16,10 @@ I have a server at home with a large number of Linux virtual machines to which I
 - Ability to set an authorization password.
 - Full screen or windowed mode.
 
+## An example of working with compression
+
+<p align="center"><img height="280px" src="./info/example.png"></p>
+
 ## Requirements
+
 libx11-dev, libxtst-dev, libssl-dev, os with x11
