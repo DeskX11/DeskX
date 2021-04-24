@@ -3,7 +3,6 @@
 
 tcp_net::tcp_net(int port) {
 	constexpr socklen_t size = sizeof(sockaddr_in);
-	timeval to;
 
 	own.sddr.sin_addr.s_addr = INADDR_ANY;
 	own.sddr.sin_port = htons(port);
@@ -12,13 +11,7 @@ tcp_net::tcp_net(int port) {
 	sock1 = socket(AF_INET, SOCK_STREAM, 0);
 	assert(sock1 > -1);
 
-	char *popt = reinterpret_cast<char *>(&to);
-	int opt = sizeof(to);
-	to.tv_sec  = 0;
-	to.tv_usec = 0;
-
-	setsockopt(sock1, SOL_SOCKET, SO_RCVTIMEO, popt, opt);
-	setsockopt(sock1, SOL_SOCKET, SO_SNDTIMEO, popt, opt);
+	set_options(sock1);
 
 	assert(bind(sock1, own.ptr, size) == 0);
 	assert(listen(sock1, 5) == 0);
@@ -30,7 +23,10 @@ bool tcp_net::accept_connection(void) {
 	socklen_t size = sizeof(sockaddr_in);
 	
 	sock2 = accept(sock1, client.ptr, &size);
-	return sock2 != -1;
+	RET_IF(sock2 == -1, false);
+
+	set_options(sock2);
+	return true;
 }
 
 void tcp_net::close_connection(void) {
@@ -72,6 +68,21 @@ void tcp_net::close_socket(int fd) {
 
 void tcp_net::stop(void) {
 	init = false;
+}
+
+void tcp_net::set_options(int sock) {
+	timeval to;
+	char *popt = reinterpret_cast<char *>(&to);
+	int opt = sizeof(to);
+	to.tv_sec  = 0;
+	to.tv_usec = 0;
+
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, popt, opt);
+	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, popt, opt);
+
+	uint32_t val = SOCKBUF;
+	setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &val, U32S);
+	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &val, U32S);
 }
 
 tcp_net::~tcp_net(void) {

@@ -19,6 +19,10 @@ tcp_net::tcp_net(std::string ip, int port) {
 
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, popt, opt);
 	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, popt, opt);
+			
+	uint32_t val = SOCKBUF;
+	setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &val, U32S);
+	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &val, U32S);
 
 	assert(connect(sock, own.ptr, size) == 0);
 }

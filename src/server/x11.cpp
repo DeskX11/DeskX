@@ -65,9 +65,9 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 	pix one;
 
 	auto cmp = [&](char *pixs, pix &d) {
-		return abs(pixs[0] - d.r) < comp
-			&& abs(pixs[1] - d.g) < comp
-			&& abs(pixs[2] - d.b) < comp;
+		return abs(pixs[0] - d.r)
+			 + abs(pixs[1] - d.g)
+			 + abs(pixs[2] - d.b) < comp;
 	};
 
 	auto cpy = [](char *pixs, pix &one) {

@@ -22,6 +22,7 @@
 #define RET_IF(cond, value)		if ((cond)) return (value);
 #define RET_IF_VOID(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
+#define SOCKBUF  (uint32_t)50368000
 #define BLOCKMAX 65533
 
 constexpr size_t U32S = sizeof(uint32_t);
@@ -80,6 +81,7 @@ private:
 	int sock1, sock2;
 
 	void close_socket(int);
+	void set_options(int);
 
 public:
 	tcp_net(int);

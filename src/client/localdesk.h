@@ -6,6 +6,7 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/XTest.h>
+#include <netinet/tcp.h>
 #include <openssl/md5.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -22,6 +23,7 @@
 #define RET_IF(cond, value)		if ((cond)) return (value);
 #define RET_IF_VOID(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
+#define SOCKBUF (uint32_t)50368000
 
 constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
