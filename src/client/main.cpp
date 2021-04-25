@@ -17,21 +17,70 @@ std::string man_text("\033[1mlocalDeskX\033[0m - Program for remote"\
 					 " in window mode, 1 when full window "			\
 					 "mode.\n[Range]\t   - Compression range "		\
 					 "(0 to 255).");
-tcp_net *net;
+netw *net;
 
-void recv_screenshot(int argc, char **argv,
-					 byte *req) {
+input args_read(int argc, char *argv[]) {
+	struct arg {
+		std::string inp; int min;
+	};
+
+	std::vector<arg> l = {
+		{"--compression=",	15},
+		{"--password=",		12},
+		{"--fullscreen",	12},
+		{"--port=",			 8},
+		{"--cmd=",			 9},
+		{"--ip=",			 8}
+	};
+
+	auto cmp = [&](arg &a, char *str, char **p) {
+		int l1 = strlen(str);
+		int l2 = a.inp.length();
+
+		int cmp = strncmp(a.inp.c_str(), str, l2);
+		*p = str + l2;
+
+		return cmp == 0 && l1 >= a.min;
+	};
+
+	input retval;
+	char *ptr;
+
+	for (int i = 1; i < argc; i++) {
+		if (cmp(l[0], argv[i], &ptr)) {
+			retval.comp = (uint8_t)atoi(ptr);
+		}
+
+		else if (cmp(l[1], argv[i], &ptr)) {
+			retval.pass = std::string(ptr);
+		}
+
+		else if (cmp(l[2], argv[i], &ptr)) {
+			retval.full = true;
+		}
+
+		else if (cmp(l[3], argv[i], &ptr)) {
+			retval.port = atoi(ptr);
+		}
+
+		else if (cmp(l[4], argv[i], &ptr)) {
+			retval.cmd = std::string(ptr);
+		}
+
+		else if (cmp(l[5], argv[i], &ptr)) {
+			retval.ip = std::string(ptr);
+		}
+	}
+
+	return retval;
+}
+
+void recv_screenshot(input &args, byte *req) {
 	
 }
 
-void start_streaming(int argc, char **argv,
-					 byte *req) {
-	if (argc != 7) {
-		std::cout << man_text << "\n";
-		return;
-	}
-
-	req[1 + MD5S] = (uint8_t)atoi(argv[6]);
+void start_streaming(input &args, byte *req) {
+	req[1 + MD5_DIGEST_LENGTH] = args.comp;
 	req[0] = 0x01;
 
 	assert(net->send_data(req, RSIZE));
@@ -47,7 +96,7 @@ void start_streaming(int argc, char **argv,
 	}
 
 	hdrs.from(hbuff);
-	x11_client x11(hdrs, argv[5][0] != '0');
+	x11_client x11(hdrs, args.full);
 
 	size_t size = hdrs.width * hdrs.height
 				* BSIZE;
@@ -76,34 +125,37 @@ void start_streaming(int argc, char **argv,
 }
 
 int main(int argc, char *argv[]) {
+	byte hash[MD5_DIGEST_LENGTH];
 	byte req[RSIZE];
-	byte hash[MD5S];
 
-	if (argc < 5) {
+	input args = args_read(argc, argv);
+	memset(hash, 0 , MD5_DIGEST_LENGTH);
+	
+	if (args.ip.empty() || args.port < 1) {
 		std::cout << man_text << "\n";
 		return 1;
 	}
 
-	std::string ip (argv[1]);
-	int port = atoi(argv[2]);
+	byte *bpass = (byte *)args.pass.c_str();
+	net = new netw(args.ip, args.port);
 
-	assert(net = new tcp_net(ip, port));
-	
-	MD5((byte *)argv[3], strlen(argv[3]), hash);
+	MD5(bpass, args.pass.length(), hash);
 	memset(req, 0, RSIZE);
-	memcpy(req + 1, hash, MD5S);
+	memcpy(req + 1, hash, MD5_DIGEST_LENGTH);
 
-	switch (*argv[4]) {
-	case '0':
+	assert(net);
+
+	switch (*args.cmd.c_str()) {
+	case 'e':
 		net->send_data(req, RSIZE);
 		break;
 
-	case '1':
-		start_streaming(argc, argv, req);
+	case 'r':
+		start_streaming(args, req);
 		break;
 
-	case '2':
-		recv_screenshot(argc, argv, req);
+	case 's':
+		recv_screenshot(args, req);
 	default: break;
 	}
 

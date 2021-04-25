@@ -28,7 +28,7 @@
 constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
 constexpr size_t U8TS = sizeof(uint8_t);
-constexpr size_t BSIZE = U8TS + 3;
+constexpr size_t BSIZE = U8TS * 4;
 constexpr size_t MSIZE = U16S * 2 + 1;
 
 typedef unsigned char byte;
@@ -44,6 +44,11 @@ struct sddr_struct {
 	void operator=(sddr_struct &element) {
 		sddr = element.sddr;
 	}
+};
+
+struct input {
+	std::string pass = "";
+	int tcpport = 0, udpport = 0;
 };
 
 struct pix {
@@ -74,7 +79,7 @@ struct headers {
 };
 
 
-class tcp_net {
+class netw {
 private:
 	sddr_struct own, client;
 	bool init = false;
@@ -84,8 +89,8 @@ private:
 	void set_options(int);
 
 public:
-	tcp_net(int);
-	~tcp_net(void);
+	netw(int);
+	~netw(void);
 	bool accept_connection(void);
 	void close_connection(void);
 	bool recv_data(byte *, int);

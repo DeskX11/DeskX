@@ -7,7 +7,7 @@ std::string man_text("\033[1mlocalDeskX\033[0m - Program for remote"\
 					 "[Port]\t   - Connection port.\n"				\
 					 "[Password] - Secret word without spaces.");
 x11_server *x11;
-tcp_net *net;
+netw *net;
 
 int pack_pixs(byte *buff, std::vector<pix> &vec) {
 	uint32_t size = vec.size();
@@ -16,8 +16,8 @@ int pack_pixs(byte *buff, std::vector<pix> &vec) {
 	byte *ptr = buff + U32S;
 
 	for (size_t i = 0; i < size; i++) {
-		memcpy(ptr + i * BSIZE, &vec[i].num, U8TS);
-		ptr[i * BSIZE + U8TS + 0] = vec[i].r;
+		ptr[i * BSIZE]			  = vec[i].num;
+		ptr[i * BSIZE + U8TS]	  = vec[i].r;
 		ptr[i * BSIZE + U8TS + 1] = vec[i].g;
 		ptr[i * BSIZE + U8TS + 2] = vec[i].b;
 	}
@@ -106,22 +106,62 @@ void request_processing(byte *hash) {
 	}
 }
 
+input args_read(int argc, char *argv[]) {
+	struct arg {
+		std::string inp; int min;
+	};
+
+	std::vector<arg> l = {
+		{"--password=",		12},
+		{"--udp-port=",		12},
+		{"--port=",			 8},
+	};
+
+	auto cmp = [&](arg &a, char *str, char **p) {
+		int l1 = strlen(str);
+		int l2 = a.inp.length();
+
+		int cmp = strncmp(a.inp.c_str(), str, l2);
+		*p = str + l2;
+
+		return cmp == 0 && l1 >= a.min;
+	};
+
+	input retval;
+	char *ptr;
+
+	for (int i = 1; i < argc; i++) {
+		if (cmp(l[2], argv[i], &ptr)) {
+			retval.tcpport = atoi(ptr);
+		}
+
+		else if (cmp(l[0], argv[i], &ptr)) {
+			retval.pass = std::string(ptr);
+		}
+	}
+
+	return retval;
+}
+
 int main(int argc, char *argv[]) {
 	byte hash[MD5S];
-	int port;
+	input args = args_read(argc, argv);
 
-	if (argc < 3 || (port = atoi(argv[1])) < 0) {
+	if (args.tcpport < 1) {
 		std::cout << man_text << "\n";
 		return 1;
 	}
 
-	assert(net = new tcp_net(port));
-	MD5((byte *)argv[2], strlen(argv[2]), hash);
+	byte *bpass = (byte *)args.pass.c_str();
+	net = new netw(args.tcpport);
+
+	MD5(bpass, args.pass.length(), hash);
+	assert(net);
 
 	while (net->work()) {
 		if (net->accept_connection()) {
 			request_processing(hash);
-			net->close_connection();
+			net->close_connection ();
 		}
 	}
 

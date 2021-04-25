@@ -1,7 +1,7 @@
 
 #include "localdesk.h"
 
-tcp_net::tcp_net(int port) {
+netw::netw(int port) {
 	constexpr socklen_t size = sizeof(sockaddr_in);
 
 	own.sddr.sin_addr.s_addr = INADDR_ANY;
@@ -19,7 +19,7 @@ tcp_net::tcp_net(int port) {
 	init = true;
 }
 
-bool tcp_net::accept_connection(void) {
+bool netw::accept_connection(void) {
 	socklen_t size = sizeof(sockaddr_in);
 	
 	sock2 = accept(sock1, client.ptr, &size);
@@ -29,11 +29,11 @@ bool tcp_net::accept_connection(void) {
 	return true;
 }
 
-void tcp_net::close_connection(void) {
+void netw::close_connection(void) {
 	close_socket(sock2);
 }
 
-bool tcp_net::recv_data(byte *buff, int size) {
+bool netw::recv_data(byte *buff, int size) {
 	RET_IF(size < 1 || !buff, false);
 	int step = 0, rl;
 
@@ -46,7 +46,7 @@ bool tcp_net::recv_data(byte *buff, int size) {
 	return true;
 }
 
-bool tcp_net::send_data(byte *buff, int size) {
+bool netw::send_data(byte *buff, int size) {
 	RET_IF(size < 1 || !buff, false);
 	int step = 0, rl;
 
@@ -59,18 +59,18 @@ bool tcp_net::send_data(byte *buff, int size) {
 	return true;
 }
 
-void tcp_net::close_socket(int fd) {
+void netw::close_socket(int fd) {
 	if (fd > -1) {
 		shutdown(fd, SHUT_RDWR);
 		close(fd);
 	}
 }
 
-void tcp_net::stop(void) {
+void netw::stop(void) {
 	init = false;
 }
 
-void tcp_net::set_options(int sock) {
+void netw::set_options(int sock) {
 	timeval to;
 	char *popt = reinterpret_cast<char *>(&to);
 	int opt = sizeof(to);
@@ -85,7 +85,7 @@ void tcp_net::set_options(int sock) {
 	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &val, U32S);
 }
 
-tcp_net::~tcp_net(void) {
+netw::~netw(void) {
 	close_socket(sock1);
 	close_socket(sock2);
 }

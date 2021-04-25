@@ -1,7 +1,7 @@
 
 #include "localdesk.h"
 
-tcp_net::tcp_net(std::string ip, int port) {
+netw::netw(std::string ip, int port) {
 	constexpr socklen_t size = sizeof(sockaddr_in);
 	timeval to;
 
@@ -27,7 +27,7 @@ tcp_net::tcp_net(std::string ip, int port) {
 	assert(connect(sock, own.ptr, size) == 0);
 }
 
-bool tcp_net::recv_data(byte *buff, int size) {
+bool netw::recv_data(byte *buff, int size) {
 	RET_IF(size < 1 || !buff, false);
 	int step = 0, rl;
 
@@ -40,7 +40,7 @@ bool tcp_net::recv_data(byte *buff, int size) {
 	return true;
 }
 
-bool tcp_net::send_data(byte *buff, int size) {
+bool netw::send_data(byte *buff, int size) {
 	RET_IF(size < 1 || !buff, false);
 	int step = 0, rl;
 
@@ -53,7 +53,7 @@ bool tcp_net::send_data(byte *buff, int size) {
 	return true;
 }
 
-tcp_net::~tcp_net(void) {
+netw::~netw(void) {
 	if (sock > -1) {
 		shutdown(sock, SHUT_RDWR);
 		close(sock);

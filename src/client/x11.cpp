@@ -53,20 +53,20 @@ void x11_client::sharedmem_alloc(int size) {
 }
 
 void x11_client::set_pixels(byte *ptr, uint32_t blocks) {
-	unsigned int shift, pos = 0, sh;
-	uint8_t num;
+	unsigned int offset, pos = 0, sh;
+	uint8_t number;
 
 	for (unsigned int i = 0; i < blocks; i++) {
-		shift = i * BSIZE + U8TS;
+		offset = i * BSIZE + U8TS;
+		number = ptr[offset - U8TS];
 
-		memcpy(&num, ptr + shift - U8TS, U8TS);
-		BREAK_IF(pos + num > maxpix);
+		BREAK_IF(pos + number > maxpix);
 	
-		for (uint8_t j = 0; j < num; j++) {
+		for (uint8_t j = 0; j < number; j++) {
 			sh = pos * 4;
-			img->data[sh + 0] = (ptr + shift)[0];
-			img->data[sh + 1] = (ptr + shift)[1];
-			img->data[sh + 2] = (ptr + shift)[2];
+			img->data[sh + 0] = (ptr + offset)[0];
+			img->data[sh + 1] = (ptr + offset)[1];
+			img->data[sh + 2] = (ptr + offset)[2];
 			pos++;
 		}
 	}

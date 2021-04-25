@@ -19,8 +19,8 @@
 #include <string>
 #include <fstream>
 
-#define MD5S MD5_DIGEST_LENGTH
 #define RET_IF(cond, value)		if ((cond)) return (value);
+#define NEXT_IF(cond)			if ((cond)) continue;
 #define RET_IF_VOID(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
 #define SOCKBUF (uint32_t)50368000
@@ -28,9 +28,9 @@
 constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
 constexpr size_t U8TS = sizeof(uint8_t);
-constexpr size_t BSIZE = U8TS + 3;
-constexpr size_t MSIZE = U16S * 2 + 1;
-constexpr size_t RSIZE = U8TS * 2 + MD5S;
+constexpr size_t BSIZE = U8TS * 4;
+constexpr size_t MSIZE = U16S * 2 + U8TS;
+constexpr size_t RSIZE = U8TS * 2 + MD5_DIGEST_LENGTH;
 
 typedef unsigned char byte;
 
@@ -69,16 +69,23 @@ struct headers {
 	}
 };
 
-class tcp_net {
+struct input {
+	std::string ip = "", pass = "", cmd = "rat";
+	bool full = false;
+	uint8_t comp = 10;
+	int port = 0;
+};
+
+class netw {
 private:
 	sddr_struct own;
 	int sock;
 
 public:
-	tcp_net(std::string, int);
+	netw(std::string, int);
 	bool recv_data(byte *, int);
 	bool send_data(byte *, int);
-	~tcp_net(void);
+	~netw(void);
 };
 
 class x11_client {
