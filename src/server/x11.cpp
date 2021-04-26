@@ -60,9 +60,54 @@ headers x11_server::get_headers(void) {
 	return data;
 }
 
+void x11_server::links_table(byte *buff, size_t &size) {
+	std::map<uint32_t, size_t>::iterator it1, it2;
+	std::vector<pix> list;
+	uint32_t tmp = 0;
+
+	pixels_vector(list);
+
+	for (auto &p : list) {
+		tmp = p.u32();
+
+		it1 = links.find(tmp);
+		if (it1 != links.end()) {
+			it1->second++;
+			continue;
+		}
+
+		links.insert(std::make_pair(tmp, 1));
+	}
+
+	while (links.size() > 0xff) {
+		it1 = it2 = links.begin();
+
+		for ( ; it1 != links.end(); it1++) {
+			if (it1->second < it2->second) {
+				it2 = it1;
+			}
+		}
+
+		links.erase(it2);
+	}
+
+	tmp = links.size();
+	memcpy(buff, &tmp, U32S);
+
+	for (auto &p : links) {
+		memcpy(buff + U32S, &p.first, U32S);
+		buff += U32S;
+	}
+
+	size = tmp * U32S + U32S;
+}
+
 void x11_server::pixels_vector(std::vector<pix> &arr) {
 	uint32_t size = img->bytes_per_line * img->height;
+	std::map<uint32_t, size_t>::iterator it;
 	pix one;
+
+	using std::distance;
 
 	auto cmp = [&](char *pixs, pix &d) {
 		return abs(pixs[0] - d.r)
@@ -80,15 +125,22 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 	cpy(img->data, one);
 
 	for (uint32_t i = 0; i < size; i += 4) {
-		if (cmp(img->data + i, one)
-			&& one.num  < BLOCKMAX) {
+		if (cmp(img->data + i, one) && one.num < 0xff) {
 			one.num++;
 			continue;
+		}
+
+		it = links.find(one.u32());
+
+		if (it != links.end()) {
+			one.link_id = distance(links.begin(), it);
+			one.link = true;
 		}
 
 		arr.push_back(one);
 		cpy(img->data + i, one);
 		one.num = 1;
+		one.link = false;
 	}
 }
 

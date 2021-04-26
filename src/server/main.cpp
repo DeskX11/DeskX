@@ -10,27 +10,39 @@ x11_server *x11;
 netw *net;
 
 int pack_pixs(byte *buff, std::vector<pix> &vec) {
-	uint32_t size = vec.size();
-	memcpy(buff, &size, U32S);
-
+	uint32_t blockn = 0, linkn = 0;
 	byte *ptr = buff + U32S;
 
-	for (size_t i = 0; i < size; i++) {
-		ptr[i * BSIZE]			  = vec[i].num;
-		ptr[i * BSIZE + U8TS]	  = vec[i].r;
-		ptr[i * BSIZE + U8TS + 1] = vec[i].g;
-		ptr[i * BSIZE + U8TS + 2] = vec[i].b;
+	for (auto &p : vec) {
+		if (p.link) {
+			ptr[0] = 0;
+			ptr[1] = p.num;
+			ptr[2] = p.link_id;
+			ptr += 3;
+			linkn++;
+			continue;
+		}
+
+		ptr[0] = p.num;
+		ptr[1] = p.r;
+		ptr[2] = p.g;
+		ptr[3] = p.b;
+		blockn++;
+		ptr += 4;
 	}
 
-	return size * BSIZE + U32S;
+	uint32_t size = blockn * BSIZE + linkn * 3;
+	memcpy(buff, &size, U32S);
+
+	return size + U32S;
 }
 
 void start_streaming(uint8_t compression) {
 	assert(x11 = new x11_server(compression));
 
-	size_t maxb = U32S + BSIZE * x11->pixs_num();
+	size_t size = U32S + BSIZE * x11->pixs_num();
 	headers hdrs = x11->get_headers();
-	byte *buff = new byte[maxb];
+	byte *buff = new byte[size];
 	std::vector<pix> vec;
 	uint16_t x, y;
 
@@ -38,9 +50,12 @@ void start_streaming(uint8_t compression) {
 	hdrs.to(buff);
 	RET_IF_VOID(!net->send_data(buff, hdrs.size));
 
+	x11->links_table(buff, size);
+	RET_IF_VOID(!net->send_data(buff, size));
+
 	for (;;) {
 		x11->pixels_vector(vec);
-		int size = pack_pixs(buff, vec);
+		size = pack_pixs(buff, vec);
 
 		BREAK_IF(!net->send_data(buff, size ));
 		BREAK_IF(!net->recv_data(buff, MSIZE));

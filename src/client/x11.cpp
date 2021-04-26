@@ -52,21 +52,32 @@ void x11_client::sharedmem_alloc(int size) {
 	shmctl(shm.shmid, IPC_RMID, 0);
 }
 
-void x11_client::set_pixels(byte *ptr, uint32_t blocks) {
-	unsigned int offset, pos = 0, sh;
+void x11_client::set_pixels(byte *ptr, uint32_t size) {
+	unsigned int pos = 0, sh;
 	uint8_t number;
+	byte *pixs;
 
-	for (unsigned int i = 0; i < blocks; i++) {
-		offset = i * BSIZE + U8TS;
-		number = ptr[offset - U8TS];
+	while (size != 0) {
+		if ((number = *ptr) == 0) {
+			number = ptr[1];
+			BREAK_IF(ptr[2] > lnum);
+			pixs = (byte *)&links[ptr[2]];
+			ptr  += 3;
+			size -= 3;
+		}
+		else {
+			pixs = ptr;
+			ptr  += 4;
+			size -= 4;
+		}
 
-		BREAK_IF(pos + number > maxpix);
-	
-		for (uint8_t j = 0; j < number; j++) {
+		pixs += 1;
+
+		for (uint8_t i = 0; i < number; i++) {
 			sh = pos * 4;
-			img->data[sh + 0] = (ptr + offset)[0];
-			img->data[sh + 1] = (ptr + offset)[1];
-			img->data[sh + 2] = (ptr + offset)[2];
+			img->data[sh]	  = pixs[0];
+			img->data[sh + 1] = pixs[1];
+			img->data[sh + 2] = pixs[2];
 			pos++;
 		}
 	}
@@ -121,6 +132,19 @@ size_t x11_client::get_events(byte *buff) {
 
 	*p = i;
 	return i;
+}
+
+void x11_client::add_links(byte *buff, uint32_t size) {
+	uint32_t link = 0;
+	size_t shift;
+
+	lnum = size;
+
+	for (uint32_t i = 0; i < lnum; i++) {
+		shift = i * U32S;
+		memcpy(&link, buff + shift, U32S);
+		links.push_back(link);
+	}
 }
 
 x11_client::~x11_client(void) {

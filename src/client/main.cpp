@@ -103,6 +103,12 @@ void start_streaming(input &args, byte *req) {
 	byte *buff = new byte[size];
 	uint32_t blen;
 	byte *bp = reinterpret_cast<byte *>(&blen);
+	// get link table
+	RET_IF_VOID(!net->recv_data(bp, U32S));
+	blen *= U32S;
+
+	RET_IF_VOID(!net->recv_data(buff, blen));
+	x11.add_links(buff, blen / U32S);
 
 	assert(buff);
 
@@ -110,8 +116,7 @@ void start_streaming(input &args, byte *req) {
 		BREAK_IF(!net->recv_data(bp, U32S));
 		BREAK_IF(blen == 0);
 
-		size_t rs = blen * BSIZE;
-		BREAK_IF(!net->recv_data(buff, rs));
+		BREAK_IF(!net->recv_data(buff, blen));
 		x11.set_pixels(buff, blen);
 
 		// mouse & keys

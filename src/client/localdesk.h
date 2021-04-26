@@ -98,6 +98,9 @@ private:
 	XImage *img;
 	GC gc;
 
+	std::vector<uint32_t> links;
+	uint32_t lnum = 0;
+
 	Window new_window(int, int);
 	void sharedmem_alloc(int);
 
@@ -105,6 +108,7 @@ public:
 	size_t get_events(byte *);
 	void set_pixels(byte *, uint32_t);
 	x11_client(headers, bool);
+	void add_links(byte *, uint32_t);
 	~x11_client(void);
 };
 

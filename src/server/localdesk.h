@@ -17,6 +17,7 @@
 #include <cstring>
 #include <string>
 #include <fstream>
+#include <map>
 
 #define MD5S MD5_DIGEST_LENGTH
 #define RET_IF(cond, value)		if ((cond)) return (value);
@@ -52,8 +53,19 @@ struct input {
 };
 
 struct pix {
-	uint8_t num = 0;
+	uint8_t num = 0, link_id = 0;
 	char r, g, b;
+	bool link = false;
+
+	uint32_t u32(void) {
+		uint32_t buff;
+		char *ptr = reinterpret_cast<char *>(&buff);
+		ptr[0] = 0;
+		ptr[1] = r;
+		ptr[2] = g;
+		ptr[3] = b;
+		return buff;
+	}
 };
 
 struct headers {
@@ -101,6 +113,7 @@ public:
 
 class x11_server {
 private:
+	std::map<uint32_t, size_t> links;
 	Display *disp = nullptr;
 	XWindowAttributes attrs;
 	XShmSegmentInfo shm;
@@ -120,6 +133,7 @@ public:
 	int pixs_num(void);
 	x11_server(uint8_t);
 	~x11_server(void);
+	void links_table(byte *, size_t &);
 };
 
 #endif
