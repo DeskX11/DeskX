@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := all
-FLAGS = -lX11 -lXext -lcrypto -lXtst -Os -std=c++17
+FLAGS = -lX11 -lXext -lcrypto -lXtst -Ofast -std=c++17
 CC = g++
 
 ldxs:

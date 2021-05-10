@@ -21,6 +21,7 @@
 
 #define MD5S MD5_DIGEST_LENGTH
 #define RET_IF(cond, value)		if ((cond)) return (value);
+#define NEXT_IF(cond)			if ((cond)) continue;
 #define RET_IF_VOID(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
 #define SOCKBUF  (uint32_t)50368000
@@ -29,6 +30,7 @@
 constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
 constexpr size_t U8TS = sizeof(uint8_t);
+constexpr size_t ESIZE = U32S + 1;
 constexpr size_t BSIZE = U8TS * 4;
 constexpr size_t MSIZE = U16S * 2 + 1;
 
@@ -54,8 +56,9 @@ struct input {
 
 struct pix {
 	uint8_t num = 0, link_id = 0;
-	char r, g, b;
-	bool link = false;
+	uint32_t eqn;
+	byte r, g, b;
+	bool link, eq;
 
 	uint32_t u32(void) {
 		uint32_t buff;
@@ -65,6 +68,16 @@ struct pix {
 		ptr[2] = g;
 		ptr[3] = b;
 		return buff;
+	}
+
+	void set(byte *pixs) {
+		link = false;
+		eq   = false;
+		r = pixs[0];
+		g = pixs[1];
+		b = pixs[2];
+		num = 0;
+		eqn = 0;
 	}
 };
 
@@ -117,18 +130,21 @@ private:
 	Display *disp = nullptr;
 	XWindowAttributes attrs;
 	XShmSegmentInfo shm;
-	bool inited = false;
+	bool inited = false, fsend = false;
+	byte *prevb, *nextb;
 	uint8_t comp;
 	Window root;
 	XImage *img;
 	int scr, depth;
 
 	void sharedmem_alloc(void);
+	void color_link(pix &);
 
 public:
 	void set_mouse(uint16_t, uint16_t);
 	void set_events(byte *, uint8_t);
-	void pixels_vector(std::vector<pix> &);
+	size_t pixels_buffer(byte *);
+	void pixels_vector(std::vector<pix> &arr);
 	headers get_headers(void);
 	int pixs_num(void);
 	x11_server(uint8_t);

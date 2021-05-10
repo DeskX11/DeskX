@@ -29,6 +29,7 @@ constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
 constexpr size_t U8TS = sizeof(uint8_t);
 constexpr size_t BSIZE = U8TS * 4;
+constexpr size_t ESIZE = U32S + 1;
 constexpr size_t MSIZE = U16S * 2 + U8TS;
 constexpr size_t RSIZE = U8TS * 2 + MD5_DIGEST_LENGTH;
 

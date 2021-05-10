@@ -20,6 +20,10 @@ x11_server::x11_server(uint8_t val) {
 	XSync(disp, true);
 	XTestGrabControl(disp, true);
 
+	nextb = new byte[attrs.width * attrs.height * 4];
+	prevb = new byte[attrs.width * attrs.height * 4];
+	assert(prevb && nextb);
+
 	inited = true;
 }
 
@@ -33,6 +37,9 @@ x11_server::~x11_server(void) {
 	shmdt(shm.shmaddr);
 	XTestGrabControl(disp, false);
 	XCloseDisplay(disp);
+
+	delete[] nextb;
+	delete[] prevb;
 }
 
 void x11_server::sharedmem_alloc(void) {
@@ -66,6 +73,7 @@ void x11_server::links_table(byte *buff, size_t &size) {
 	uint32_t tmp = 0;
 
 	pixels_vector(list);
+	fsend = false;
 
 	for (auto &p : list) {
 		tmp = p.u32();
@@ -102,46 +110,88 @@ void x11_server::links_table(byte *buff, size_t &size) {
 	size = tmp * U32S + U32S;
 }
 
-void x11_server::pixels_vector(std::vector<pix> &arr) {
-	uint32_t size = img->bytes_per_line * img->height;
+void x11_server::color_link(pix &pixel) {
 	std::map<uint32_t, size_t>::iterator it;
+
+	if ((it = links.find(pixel.u32())) != links.end()) {
+		pixel.link_id = distance(links.begin(), it);
+		pixel.link = true;
+	}
+}
+
+void x11_server::pixels_vector(std::vector<pix> &arr) {
+	uint32_t size = attrs.width * attrs.height;
 	pix one;
 
 	using std::distance;
 
-	auto cmp = [&](char *pixs, pix &d) {
-		return abs(pixs[0] - d.r)
-			 + abs(pixs[1] - d.g)
-			 + abs(pixs[2] - d.b) < comp;
-	};
-
-	auto cpy = [](char *pixs, pix &one) {
-		one.r = pixs[0];
-		one.g = pixs[1];
-		one.b = pixs[2];
-	};
-
 	XShmGetImage(disp, root, img, 0, 0, AllPlanes);
-	cpy(img->data, one);
+	byte *orig = (byte *)img->data;
+	byte *prev = prevb;
+	byte *next = nextb;
 
-	for (uint32_t i = 0; i < size; i += 4) {
-		if (cmp(img->data + i, one) && one.num < 0xff) {
+	auto eq = [](byte *first, byte *second) {
+		return memcmp(first, second, 3) == 0;
+	};
+
+	auto cpy = [](byte *from, byte *to) {
+		memcpy(to, from, 3);
+	};
+
+	auto cmp = [&](void) {
+		return abs(orig[0] - one.r)
+			 + abs(orig[1] - one.g)
+			 + abs(orig[2] - one.b) < comp;
+	};
+
+	auto eqseg = [&](void) {
+		RET_IF_VOID(!fsend);
+		one.eqn = 0;
+
+		while (eq(orig, prev) && size > 0) {
+			cpy(orig, next);
+
+			one.eqn++;
+			one.eq = true;
+			size--;
+
+			orig += 4;
+			next += 4;
+			prev += 4;
+		}
+
+		if (one.eqn != 0) {
+			arr.push_back(one);
+		}
+	};
+
+	auto cmpseg = [&](void) {
+		one.set(orig);
+
+		while (cmp() && one.num < 0xfe && size > 0) {
+			cpy(orig, next);
 			one.num++;
-			continue;
+			size--;
+			orig += 4;
+			next += 4;
+			prev += 4;
 		}
 
-		it = links.find(one.u32());
-
-		if (it != links.end()) {
-			one.link_id = distance(links.begin(), it);
-			one.link = true;
+		if (one.num != 0) {
+			color_link(one);
+			arr.push_back(one);
 		}
+	};
 
-		arr.push_back(one);
-		cpy(img->data + i, one);
-		one.num = 1;
-		one.link = false;
+	while (size != 0) {
+		eqseg ();
+		cmpseg();
 	}
+
+	orig  = prevb;
+	prevb = nextb;
+	nextb = orig;
+	fsend = true;
 }
 
 void x11_server::set_mouse(uint16_t x, uint16_t y) {

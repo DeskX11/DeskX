@@ -118,7 +118,6 @@ void start_streaming(input &args, byte *req) {
 
 		BREAK_IF(!net->recv_data(buff, blen));
 		x11.set_pixels(buff, blen);
-
 		// mouse & keys
 		size_t evsize = x11.get_events(buff);
 		evsize = evsize * 2 + U16S * 2 + 1;

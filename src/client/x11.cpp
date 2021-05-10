@@ -55,23 +55,32 @@ void x11_client::sharedmem_alloc(int size) {
 void x11_client::set_pixels(byte *ptr, uint32_t size) {
 	unsigned int pos = 0, sh;
 	uint8_t number;
+	uint32_t skip;
 	byte *pixs;
 
 	while (size != 0) {
+		// Linked block.
 		if ((number = *ptr) == 0) {
 			number = ptr[1];
 			BREAK_IF(ptr[2] > lnum);
-			pixs = (byte *)&links[ptr[2]];
+			pixs = ((byte *)&links[ptr[2]]) + 1;
 			ptr  += 3;
 			size -= 3;
 		}
+		// Same block.
+		else if (number == 0xff) {
+			memcpy(&skip, ptr + 1, U32S);
+			ptr += ESIZE;
+			pos += skip;
+			number = 0;
+			size -= ESIZE;
+		}
+		// Compressed block.
 		else {
-			pixs = ptr;
+			pixs = ptr + 1;
 			ptr  += 4;
 			size -= 4;
 		}
-
-		pixs += 1;
 
 		for (uint8_t i = 0; i < number; i++) {
 			sh = pos * 4;

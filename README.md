@@ -22,7 +22,7 @@ I have a server at home with a large number of Linux virtual machines to which I
 
 ## Compression algorithm
 
-Compression takes place in 2 stages. The first step is to search for similar pixels nearby (the color difference should not be more than a user-specified range). The next step is to search for commonly used pixel colors and create a hash table. the hash table is passed to the client side. With the subsequent transfer, the compression of the first stage will refer to the pixels from the hash table, which will reduce the packet size.
+The first step is to generate a hash table of colors that are most often found on the screen (up to 255 colors) on the server side. The color table is sent to the client side. Subsequently, 1 byte of the color identifier can be written to the place of writing 3 bytes of color. The next step is the lossy compression of the frame based on the allowable difference between the color bytes (the range of the difference can be changed by the user, this affects the packet size and picture quality). Also, in the process of sending the next frames, the program detects unchanged areas and makes an indication that nothing needs to be changed in this place on the screen. Thus, it is possible to significantly reduce the size of the transmitted packet.
 
 ## Requirements
 

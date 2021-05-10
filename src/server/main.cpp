@@ -10,10 +10,18 @@ x11_server *x11;
 netw *net;
 
 int pack_pixs(byte *buff, std::vector<pix> &vec) {
-	uint32_t blockn = 0, linkn = 0;
+	uint32_t blockn = 0, linkn = 0, eq = 0;
 	byte *ptr = buff + U32S;
 
 	for (auto &p : vec) {
+		if (p.eq) {
+			ptr[0] = 0xff;
+			memcpy(ptr + 1, &p.eqn, U32S);
+			ptr += ESIZE;
+			eq++;
+			continue;
+		}
+
 		if (p.link) {
 			ptr[0] = 0;
 			ptr[1] = p.num;
@@ -28,10 +36,10 @@ int pack_pixs(byte *buff, std::vector<pix> &vec) {
 		ptr[2] = p.g;
 		ptr[3] = p.b;
 		blockn++;
-		ptr += 4;
+		ptr += BSIZE;
 	}
 
-	uint32_t size = blockn * BSIZE + linkn * 3;
+	uint32_t size = blockn * BSIZE + linkn * 3 + eq * ESIZE;
 	memcpy(buff, &size, U32S);
 
 	return size + U32S;
@@ -43,7 +51,7 @@ void start_streaming(uint8_t compression) {
 	size_t size = U32S + BSIZE * x11->pixs_num();
 	headers hdrs = x11->get_headers();
 	byte *buff = new byte[size];
-	std::vector<pix> vec;
+	std::vector<pix> vec = { };
 	uint16_t x, y;
 
 	assert (buff);
