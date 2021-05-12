@@ -1,5 +1,5 @@
 <p align="center"><img height="120px" src="./info/logo.png"></p>
-<h3 align="center">localDeskX - Remote control in a local network.</h1>
+<h3 align="center">DeskX - Remote control in a local network.</h1>
 
 ## About project
 
@@ -23,6 +23,14 @@ I have a server at home with a large number of Linux virtual machines to which I
 ## Compression algorithm
 
 The first step is to generate a hash table of colors that are most often found on the screen (up to 255 colors) on the server side. The color table is sent to the client side. Subsequently, 1 byte of the color identifier can be written to the place of writing 3 bytes of color. The next step is the lossy compression of the frame based on the allowable difference between the color bytes (the range of the difference can be changed by the user, this affects the packet size and picture quality). Also, in the process of sending the next frames, the program detects unchanged areas and makes an indication that nothing needs to be changed in this place on the screen. Thus, it is possible to significantly reduce the size of the transmitted packet.
+
+## Screen resolution
+
+Controlling screen resolution and picture sizes is entirely dependent on the server-side resolution settings. To change it, use the standard utility xrandr.
+
+## Window or Full screen mode
+
+Full screen mode is enabled when your screen resolution matches the server side screen resolution.
 
 ## Requirements
 

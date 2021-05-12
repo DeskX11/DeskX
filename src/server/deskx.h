@@ -1,6 +1,6 @@
 
-#ifndef _LOCAL_DESK_
-#define _LOCAL_DESK_
+#ifndef _DESKX_SERVER_
+#define _DESKX_SERVER_
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -35,6 +35,14 @@ constexpr size_t BSIZE = U8TS * 4;
 constexpr size_t MSIZE = U16S * 2 + 1;
 
 typedef unsigned char byte;
+
+inline std::string man_text("\033[1mDeskX\033[0m - Program for remote control of a computer in a local network. Server side.\n\n"
+"Usage: ./dxs [options]\n"
+"Options:\n"
+"	--port			Connection port\n"
+"	--password		Verification secret word without spaces\n\n"
+"Example:\n"
+"	./dxs --port=4431 --password=secret\n");
 
 struct sddr_struct {
 	sockaddr_in sddr;
@@ -138,7 +146,7 @@ private:
 	int scr, depth;
 
 	void sharedmem_alloc(void);
-	void color_link(pix &);
+	void color_linking(pix &);
 
 public:
 	void set_mouse(uint16_t, uint16_t);

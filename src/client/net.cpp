@@ -1,5 +1,5 @@
 
-#include "localdesk.h"
+#include "deskx.h"
 
 netw::netw(std::string ip, int port) {
 	constexpr socklen_t size = sizeof(sockaddr_in);

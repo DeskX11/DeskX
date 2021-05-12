@@ -1,14 +1,17 @@
 
-#include "localdesk.h"
+#include "deskx.h"
 
-x11_client::x11_client(headers hdrs, bool full_mod) {
+x11_client::x11_client(headers hdrs) {
 	disp = XOpenDisplay(nullptr);
 	scr  = XDefaultScreen(disp);
 
-	assert(hdrs.width  <= (unsigned)DisplayWidth (disp, scr)
-		&& hdrs.height <= (unsigned)DisplayHeight(disp, scr));
+	unsigned owidth  = (unsigned)DisplayWidth (disp, scr);
+	unsigned oheight = (unsigned)DisplayHeight(disp, scr);
 
-	win = new_window(hdrs.width, hdrs.height);
+	assert(hdrs.width <= owidth && hdrs.height <= oheight);
+	bool eq = owidth == hdrs.width && hdrs.height == oheight;
+
+	win = new_window(hdrs.width, hdrs.height, eq);
 	gc  = XCreateGC(disp, win, 0, nullptr);
 	height = hdrs.height;
 	width  = hdrs.width;
@@ -29,15 +32,24 @@ x11_client::x11_client(headers hdrs, bool full_mod) {
 	XFlush(disp);
 }
 
-Window x11_client::new_window(int width, int height) {
+Window x11_client::new_window(int width, int height, bool full) {
 	int black = BlackPixel(disp, scr);
 	int white = WhitePixel(disp, scr);
 
 	Window w = XCreateSimpleWindow(disp, RootWindow(disp, scr), 0, 0,
-								   width, height, 1, black, white  );
-	XMapWindow(disp, w);
+								   width, height, 1, black, white );
+	if (full) {
+		fullscreen(w);
+	}
+    XMapWindow(disp, w);
 
 	return w;
+}
+
+void x11_client::fullscreen(Window win) {
+  Atom atoms[2] = { XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", false), None };
+  XChangeProperty(disp, win, XInternAtom(disp, "_NET_WM_STATE", false),
+				  XA_ATOM, 32, PropModeReplace, (const unsigned char *)atoms, 1);
 }
 
 void x11_client::sharedmem_alloc(int size) {
@@ -95,15 +107,15 @@ void x11_client::set_pixels(byte *ptr, uint32_t size) {
 				 width, height, false         );
 }
 
-size_t x11_client::get_events(byte *buff) {
+size_t x11_client::get_events(byte *buff, bool &done) {
 	uint8_t id, type, i = 0;
 	unsigned int mask;
 	XEvent event;
 	int rx, ry;
 	Window r;
 
-	XQueryPointer(disp, win, &r, &r, &rx,
-				  &ry, &rx, &ry, &mask );
+	XQueryPointer(disp, win, &r, &r, &rx, &ry,
+				  &rx, &ry, &mask);
 	uint16_t x = (rx < 0) ? 0 : rx;
 	uint16_t y = (ry < 0) ? 0 : ry;
 
@@ -134,12 +146,18 @@ size_t x11_client::get_events(byte *buff) {
 		default: continue;
 		}
 
+		if (id == EXIT_KEY && type > 1) {
+			done = true;
+			return 0;
+		}
+
 		p[i * 2 + 1] = type;
 		p[i * 2 + 2] = id;
 		i++;
 	}
 
 	*p = i;
+
 	return i;
 }
 

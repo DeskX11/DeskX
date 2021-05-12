@@ -1,9 +1,10 @@
 
-#ifndef _LOCAL_DESK_
-#define _LOCAL_DESK_
+#ifndef _DESKX_CLIENT_
+#define _DESKX_CLIENT_
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/XTest.h>
 #include <netinet/tcp.h>
@@ -24,6 +25,7 @@
 #define RET_IF_VOID(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
 #define SOCKBUF (uint32_t)50368000
+#define EXIT_KEY (uint8_t)73 // F7
 
 constexpr size_t U32S = sizeof(uint32_t);
 constexpr size_t U16S = sizeof(uint16_t);
@@ -34,6 +36,22 @@ constexpr size_t MSIZE = U16S * 2 + U8TS;
 constexpr size_t RSIZE = U8TS * 2 + MD5_DIGEST_LENGTH;
 
 typedef unsigned char byte;
+
+inline std::string man_text("\033[1mDeskX\033[0m - Program for remote control "
+"of a computer in a local network. Client side.\n\n"
+"Usage: ./dxс [options]\n"
+"Options:\n"
+"	--ip			Ip address of the server\n"
+"	--port			Port of the server\n"
+"	--password		Verification secret word without spaces\n"
+"	--compression		Compression range (0 to 255)\n"
+"	--cmd			Server side command (default: rat)\n\n"
+"Commands:\n"
+"	exit			Command to shutdown the server side\n"
+"	rat 			Start remote control\n"
+"	screenshot		Get a picture of the server desktop\n\n"
+"Example:\n"
+"	./dxс --ip=192.168.1.1 --port=4431 --password=secret --compression=15\n");
 
 struct sddr_struct {
 	sockaddr_in sddr;
@@ -72,7 +90,7 @@ struct headers {
 
 struct input {
 	std::string ip = "", pass = "", cmd = "rat";
-	bool full = false;
+	bool secure = false;
 	uint8_t comp = 10;
 	int port = 0;
 };
@@ -102,13 +120,14 @@ private:
 	std::vector<uint32_t> links;
 	uint32_t lnum = 0;
 
-	Window new_window(int, int);
+	Window new_window(int, int, bool);
 	void sharedmem_alloc(int);
+	void fullscreen(Window);
 
 public:
-	size_t get_events(byte *);
+	size_t get_events(byte *, bool &);
 	void set_pixels(byte *, uint32_t);
-	x11_client(headers, bool);
+	x11_client(headers);
 	void add_links(byte *, uint32_t);
 	~x11_client(void);
 };

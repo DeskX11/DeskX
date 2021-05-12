@@ -1,5 +1,5 @@
 
-#include "localdesk.h"
+#include "deskx.h"
 
 x11_server::x11_server(uint8_t val) {
 	assert(!inited);
@@ -110,11 +110,11 @@ void x11_server::links_table(byte *buff, size_t &size) {
 	size = tmp * U32S + U32S;
 }
 
-void x11_server::color_link(pix &pixel) {
+void x11_server::color_linking(pix &pixel) {
 	std::map<uint32_t, size_t>::iterator it;
 
 	if ((it = links.find(pixel.u32())) != links.end()) {
-		pixel.link_id = distance(links.begin(), it);
+		pixel.link_id = std::distance(links.begin(), it);
 		pixel.link = true;
 	}
 }
@@ -122,8 +122,6 @@ void x11_server::color_link(pix &pixel) {
 void x11_server::pixels_vector(std::vector<pix> &arr) {
 	uint32_t size = attrs.width * attrs.height;
 	pix one;
-
-	using std::distance;
 
 	XShmGetImage(disp, root, img, 0, 0, AllPlanes);
 	byte *orig = (byte *)img->data;
@@ -134,22 +132,18 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 		return memcmp(first, second, 3) == 0;
 	};
 
-	auto cpy = [](byte *from, byte *to) {
-		memcpy(to, from, 3);
-	};
-
 	auto cmp = [&](void) {
 		return abs(orig[0] - one.r)
 			 + abs(orig[1] - one.g)
 			 + abs(orig[2] - one.b) < comp;
 	};
 
-	auto eqseg = [&](void) {
+	auto eqlseg = [&](void) {
 		RET_IF_VOID(!fsend);
 		one.eqn = 0;
 
 		while (eq(orig, prev) && size > 0) {
-			cpy(orig, next);
+			memcpy(next, orig, 3);
 
 			one.eqn++;
 			one.eq = true;
@@ -169,7 +163,7 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 		one.set(orig);
 
 		while (cmp() && one.num < 0xfe && size > 0) {
-			cpy(orig, next);
+			memcpy(next, orig, 3);
 			one.num++;
 			size--;
 			orig += 4;
@@ -178,13 +172,13 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 		}
 
 		if (one.num != 0) {
-			color_link(one);
+			color_linking(one);
 			arr.push_back(one);
 		}
 	};
 
 	while (size != 0) {
-		eqseg ();
+		eqlseg();
 		cmpseg();
 	}
 

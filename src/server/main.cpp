@@ -1,16 +1,9 @@
 
-#include "localdesk.h"
-
-std::string man_text("\033[1mlocalDeskX\033[0m - Program for remote"\
-					 "control of a computer in a local network. "	\
-					 "(alpha)\nUsage: ldxs [Port] [Password]\n\n"	\
-					 "[Port]\t   - Connection port.\n"				\
-					 "[Password] - Secret word without spaces.");
-x11_server *x11;
+#include "deskx.h"
 netw *net;
 
 int pack_pixs(byte *buff, std::vector<pix> &vec) {
-	uint32_t blockn = 0, linkn = 0, eq = 0;
+	uint32_t blockn = 0, linkn = 0, eq = 0, size;
 	byte *ptr = buff + U32S;
 
 	for (auto &p : vec) {
@@ -39,17 +32,17 @@ int pack_pixs(byte *buff, std::vector<pix> &vec) {
 		ptr += BSIZE;
 	}
 
-	uint32_t size = blockn * BSIZE + linkn * 3 + eq * ESIZE;
+	size = blockn * BSIZE + linkn * 3 + eq * ESIZE;
 	memcpy(buff, &size, U32S);
 
 	return size + U32S;
 }
 
 void start_streaming(uint8_t compression) {
-	assert(x11 = new x11_server(compression));
+	x11_server x11(compression);
 
-	size_t size = U32S + BSIZE * x11->pixs_num();
-	headers hdrs = x11->get_headers();
+	size_t size = U32S + BSIZE * x11.pixs_num();
+	headers hdrs = x11.get_headers();
 	byte *buff = new byte[size];
 	std::vector<pix> vec = { };
 	uint16_t x, y;
@@ -58,11 +51,11 @@ void start_streaming(uint8_t compression) {
 	hdrs.to(buff);
 	RET_IF_VOID(!net->send_data(buff, hdrs.size));
 
-	x11->links_table(buff, size);
+	x11.links_table(buff, size);
 	RET_IF_VOID(!net->send_data(buff, size));
 
 	for (;;) {
-		x11->pixels_vector(vec);
+		x11.pixels_vector(vec);
 		size = pack_pixs(buff, vec);
 
 		BREAK_IF(!net->send_data(buff, size ));
@@ -72,11 +65,11 @@ void start_streaming(uint8_t compression) {
 		memcpy(&y, buff + U16S, U16S);
 		uint8_t evnum = buff[U16S * 2];
 
-		x11->set_mouse(x, y);
+		x11.set_mouse(x, y);
 		if (evnum != 0) {
 			evnum *= 2;
 			BREAK_IF(!net->recv_data(buff, evnum));
-			x11->set_events(buff, evnum / 2);
+			x11.set_events(buff, evnum / 2);
 		}
 
 		vec.clear();
@@ -118,12 +111,12 @@ void request_processing(byte *hash) {
 
 	case 0x01:
 		start_streaming(compression);
-		delete x11;
+		//delete x11;
 		return;
 
 	case 0x02:
 		send_screenshot(compression);
-		delete x11;
+		//delete x11;
 
 	default: return;
 	}

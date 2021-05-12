@@ -1,22 +1,5 @@
 
-#include "localdesk.h"
-
-std::string man_text("\033[1mlocalDeskX\033[0m - Program for remote"\
-					 "control of a computer in a local network. "	\
-					 "(alpha)\nUsage: ldxc [Ip] [Port] [Password]"	\
-					 " [Function] [Mode] [Range]\n\n"				\
-					 "[Ip]\t   - Server ip address.\n"				\
-					 "[Port]\t   - Server port number.\n"			\
-					 "[Password] - Secret word without"				\
-					 " spaces.\n[Function] - Number of one"			\
-					 " of the listed functions:\n\t" 				\
-					 "0  : Terminate server side process.\n\t"		\
-					 "1  : Connect to the server and start "		\
-					 "managing\n\t2  : Get a screenshot of "		\
-					 "the desktop.\n[Mode]\t   - 0 when launched"	\
-					 " in window mode, 1 when full window "			\
-					 "mode.\n[Range]\t   - Compression range "		\
-					 "(0 to 255).");
+#include "deskx.h"
 netw *net;
 
 input args_read(int argc, char *argv[]) {
@@ -27,7 +10,7 @@ input args_read(int argc, char *argv[]) {
 	std::vector<arg> l = {
 		{"--compression=",	15},
 		{"--password=",		12},
-		{"--fullscreen",	12},
+		{"--encryption",	12},
 		{"--port=",			 8},
 		{"--cmd=",			 9},
 		{"--ip=",			 8}
@@ -56,7 +39,7 @@ input args_read(int argc, char *argv[]) {
 		}
 
 		else if (cmp(l[2], argv[i], &ptr)) {
-			retval.full = true;
+			retval.secure = true;
 		}
 
 		else if (cmp(l[3], argv[i], &ptr)) {
@@ -96,7 +79,7 @@ void start_streaming(input &args, byte *req) {
 	}
 
 	hdrs.from(hbuff);
-	x11_client x11(hdrs, args.full);
+	x11_client x11(hdrs);
 
 	size_t size = hdrs.width * hdrs.height
 				* BSIZE;
@@ -111,6 +94,7 @@ void start_streaming(input &args, byte *req) {
 	x11.add_links(buff, blen / U32S);
 
 	assert(buff);
+	bool done = false;
 
 	for (;;) {
 		BREAK_IF(!net->recv_data(bp, U32S));
@@ -119,9 +103,10 @@ void start_streaming(input &args, byte *req) {
 		BREAK_IF(!net->recv_data(buff, blen));
 		x11.set_pixels(buff, blen);
 		// mouse & keys
-		size_t evsize = x11.get_events(buff);
-		evsize = evsize * 2 + U16S * 2 + 1;
+		size_t evsize = x11.get_events(buff, done);
+		BREAK_IF(done);
 
+		evsize = evsize * 2 + U16S * 2 + 1;
 		BREAK_IF(!net->send_data(buff, evsize));
 	}
 
