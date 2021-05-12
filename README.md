@@ -30,7 +30,7 @@ Controlling screen resolution and picture sizes is entirely dependent on the ser
 
 ## Window or Full screen mode
 
-Full screen mode is enabled when your screen resolution matches the server side screen resolution.
+Full screen mode is enabled when your screen resolution matches the server side screen resolution. Press the F7 key to exit full screen mode.
 
 ## Requirements
 
