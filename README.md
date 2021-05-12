@@ -18,7 +18,7 @@ I have a server at home with a large number of Linux virtual machines to which I
 
 ## An example of working with compression
 
-<p align="center"><img height="280px" src="./info/example.png"></p>
+<p align="center"><img src="./info/example.png"></p>
 
 ## Compression algorithm
 
