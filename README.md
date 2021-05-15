@@ -32,6 +32,23 @@ Controlling screen resolution and picture sizes is entirely dependent on the ser
 
 Full screen mode is enabled when your screen resolution matches the server side screen resolution. Press the F7 key to exit full screen mode.
 
+## Get started
+
+```bash
+sudo apt install libx11-dev libxtst-dev libssl-dev
+git clone https://github.com/DeskX11/DeskX/
+cd DeskX/src
+make all
+```
+After these steps 2 files will be compiled: `dxc` (the client part, which must be launched on the computer from which the control will be carried out) and `dxs` (server part for a managed computer). To get an example of how exactly you need to start the client and server parts - just run the programs without arguments `./dxc` or `./dxs`.
+
+## Subsequent updates
+
+1. Transmission of frames using the UDP protocol.
+2. MTU change at the time of launching the program.
+3. Fixing a bug with reconnecting to the server.
+4. GUI part of the program.
+
 ## Requirements
 
 libx11-dev, libxtst-dev, libssl-dev, os with x11
