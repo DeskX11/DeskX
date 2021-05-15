@@ -36,9 +36,10 @@ constexpr size_t MSIZE = U16S * 2 + 1;
 
 typedef unsigned char byte;
 
-inline std::string man_text("\033[1mDeskX\033[0m - Program for remote control of a computer in a local network. Server side.\n\n"
+inline std::string man_text("\033[1mDeskX\033[0m - Program for remote "
+"control of a computer in a local network. Server side.\n\n"
 "Usage: ./dxs [options]\n"
-"Options:\n"
+"Options (All are required):\n"
 "	--port			Connection port\n"
 "	--password		Verification secret word without spaces\n\n"
 "Example:\n"

@@ -30,8 +30,8 @@
 *.exe
 *.out
 *.app
-ldxc
-ldxs
+dxc
+dxs
 
 .DS_Store
 .oldcode

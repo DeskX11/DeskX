@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 	byte hash[MD5S];
 	input args = args_read(argc, argv);
 
-	if (args.tcpport < 1) {
+	if (args.tcpport < 1 || args.pass.empty()) {
 		std::cout << man_text << "\n";
 		return 1;
 	}
