@@ -16,6 +16,7 @@ I have a server at home with a large number of Linux virtual machines to which I
 - Ability to set an authorization password.
 - There is a choice of data transfer protocol (TCP or UDP).
 - Full screen or windowed mode.
+- Two separate streams for transferring screen data and events.
 
 ## An example of working with compression
 

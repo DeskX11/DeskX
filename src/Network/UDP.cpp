@@ -17,24 +17,29 @@ UDP::UDP(int mtu, int port, std::string ip) {
 
 	assert(mtu >= 1500);
 	packlim = mtu - sizeof(iphdr) - sizeof(udphdr);
+	userlim = packlim - 1;
+	// 1 byte is reserved for packet id.
 }
 
-bool UDP::BufferCheck(size_t len) {
-	byte tmp[len];
-	return recvfrom(sock, tmp, len, MSG_PEEK, nullptr, 0) == len;
+bool UDP::BufferCheck(byte &id) {
+	return recvfrom(sock, &id, 1, MSG_PEEK, nullptr, 0) == 1;
 }
 /**
  *	Sending data with a guaranteed receipt. The receiver is obliged
  *	to send back a byte sum to acknowledge receipt.
  */
 int UDP::SendV(byte *buff) {
-	uint32_t in = std::accumulate(buff, buff + packlim, 0);
+	uint32_t in = std::accumulate(buff, buff + userlim, 0);
+	byte pack[packlim];
 	uint32_t out = 0;
+
+	memcpy(pack + 1, buff, userlim);
+	pack[0] = pid++;
 
 	byte *back = reinterpret_cast<byte *>(&out);
 
 	for (uint8_t atts = 0; atts < UDP_ATTEMPTS; atts++) {
-		RET_IF(Send(buff, packlim) != packlim, -2);
+		RET_IF(Send(pack, packlim) != packlim, -2);
 		RET_IF(Recv(back, U32S) < 0, -1);
 		RET_IF(out == in, 1);
 	}
@@ -47,25 +52,33 @@ int UDP::SendV(byte *buff) {
  *	for new data.
  */
 int UDP::RecvV(byte *buff) {
+	byte pack[packlim];
 	bool flag = false;
+	uint8_t atts, id;
 	uint32_t out;
-	uint8_t atts;
 	int length;
 
 	byte *back = reinterpret_cast<byte *>(&out);
 
 	for (atts = 0; atts < UDP_ATTEMPTS; atts++) {
-		length = Recv(buff, packlim);
+		length = Recv(pack, packlim);
 		RET_IF(length < 0, -1);
 		BREAK_IF((flag = length == packlim));
 	}
 
 	RET_IF(!flag, -1);
-	out = std::accumulate(buff, buff + packlim, 0);
+	out = std::accumulate(pack + 1, pack + packlim, 0);
 
 	for (atts = 0; atts < UDP_ATTEMPTS; atts++) {
 		RET_IF(Send(back, U32S) != U32S, -2);
-		RET_IF(BufferCheck(1), 1);
+		BREAK_IF(!BufferCheck(id));
+
+		BREAK_IF((flag = id != pack[0]));
+	}
+
+	if (flag) {
+		memcpy(buff, pack + 1, userlim);
+		return 1;
 	}
 
 	return 0;
