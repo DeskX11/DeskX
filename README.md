@@ -3,7 +3,7 @@
 
 ## About project
 
-The project was created for its own use within the home local network. It is not recommended to use it over the Internet (the program does not provide for encryption).
+The project was created for its own use within the home local network (it is not recommended to use it over the Internet without an encrypted tunnel).
 
 ## About the reasons for creation
 
@@ -47,7 +47,7 @@ After these steps 2 files will be compiled: `dxc` (the client part, which must b
 
 ## How to get best performance?
 
-Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the --compression parameter up. To reduce transmission latency, you can try changing the data transfer protocol (UDP or TCP) for both screen and events. Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN.
+Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. To reduce transmission latency, you can try changing the data transfer protocol (UDP or TCP) for both screen and events. Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN.
 
 ## Subsequent updates
 
