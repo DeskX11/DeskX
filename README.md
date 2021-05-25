@@ -14,6 +14,7 @@ I have a server at home with a large number of Linux virtual machines to which I
 - Selection of the range of the difference between adjacent pixels to ensure compression (from 0 to 255).
 - Multiple Commands: Server Side Shutdown, Remote Control, Take Screenshot.
 - Ability to set an authorization password.
+- There is a choice of data transfer protocol (TCP or UDP).
 - Full screen or windowed mode.
 
 ## An example of working with compression
@@ -37,14 +38,19 @@ Full screen mode is enabled when your screen resolution matches the server side 
 ```bash
 sudo apt install libx11-dev libxtst-dev libssl-dev
 git clone https://github.com/DeskX11/DeskX/
-cd DeskX/src
-make all
+cd DeskX
+make client # To compile the client side
+make server # To compile the server side
 ```
 After these steps 2 files will be compiled: `dxc` (the client part, which must be launched on the computer from which the control will be carried out) and `dxs` (server part for a managed computer). To get an example of how exactly you need to start the client and server parts - just run the programs without arguments `./dxc` or `./dxs`.
 
+## How to get best performance?
+
+Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the --compression parameter up. To reduce transmission latency, you can try changing the data transfer protocol (UDP or TCP) for both screen and events. Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN.
+
 ## Subsequent updates
 
-1. Transmission of frames using the UDP protocol.
+1. <del>Transmission of frames using the UDP protocol.</del>
 2. MTU change at the time of launching the program.
 3. Fixing a bug with reconnecting to the server.
 4. GUI part of the program.

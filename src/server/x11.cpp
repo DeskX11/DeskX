@@ -1,116 +1,71 @@
 
-#include "deskx.h"
+#include "../../include/Server.h"
 
-x11_server::x11_server(uint8_t val) {
-	assert(!inited);
+X11::X11(uint8_t value) {
+	XInitThreads();
 
 	disp  = XOpenDisplay(nullptr);
 	scr   = XDefaultScreen(disp);
 	root  = DefaultRootWindow(disp);
-	depth = DefaultDepth(disp, scr);
-	comp  = val;
+	comp  = value;
 	XGetWindowAttributes(disp, root, &attrs);
+	int depth = DefaultDepth(disp, scr);
 
 	img = XShmCreateImage(disp, DefaultVisual(disp, 0), depth, ZPixmap,
 						  nullptr, &shm, attrs.width, attrs.height   );
 	assert(img);
 
-	sharedmem_alloc();
+	maxpix = attrs.width * attrs.height;
+	Tools::SharedMem(shm, &img->data, maxpix * 4);
+
 	XShmAttach(disp, &shm);
 	XSync(disp, true);
 	XTestGrabControl(disp, true);
-
+	/**
+	 *	The current frame will be written to one buffer, and the
+	 *	other will be compared with the current one. Further,
+	 *	the pointers are swapped.
+	 */
 	nextb = new byte[attrs.width * attrs.height * 4];
 	prevb = new byte[attrs.width * attrs.height * 4];
 	assert(prevb && nextb);
-
-	inited = true;
 }
 
-x11_server::~x11_server(void) {
-	if (!inited) {
-		return;
-	}
-
-	XShmDetach(disp, &shm);
-	XDestroyImage(img);
-	shmdt(shm.shmaddr);
-	XTestGrabControl(disp, false);
-	XCloseDisplay(disp);
-
-	delete[] nextb;
-	delete[] prevb;
+void X11::MouseXY(uint16_t x, uint16_t y) {
+	XTestFakeMotionEvent(disp, 0, x, y, 0);
 }
 
-void x11_server::sharedmem_alloc(void) {
-	size_t size = img->bytes_per_line * img->height;
-	
-	shm.shmid = shmget(IPC_PRIVATE, size, IPC_CREAT | 0777);
-	assert(shm.shmid > 0);
-
-	img->data = (char *)shmat(shm.shmid, 0, 0);
-	shm.shmaddr = img->data;
-	shm.readOnly = false;
-	assert(shm.shmaddr != (char *)-1);
-
-	shmctl(shm.shmid, IPC_RMID, 0);
+void X11::GetResolution(uint32_t &width, uint32_t &height) {
+	width  = attrs.width;
+	height = attrs.height;
 }
 
-headers x11_server::get_headers(void) {
-	headers data;
+void X11::NewEvents(byte *buff, uint8_t len) {
+	uint8_t number = (len > 4) ? 4 : len;
 
-	data.depth  = depth;
-	data.bitmap = img->bitmap_pad;
-	data.height = attrs.height;
-	data.width  = attrs.width;
+	for (uint8_t i = 0; i < number; i++) {
+		uint16_t shift = i * 2;
+		bool flag = true;
 
-	return data;
-}
-
-void x11_server::links_table(byte *buff, size_t &size) {
-	std::map<uint32_t, size_t>::iterator it1, it2;
-	std::vector<pix> list;
-	uint32_t tmp = 0;
-
-	pixels_vector(list);
-	fsend = false;
-
-	for (auto &p : list) {
-		tmp = p.u32();
-
-		it1 = links.find(tmp);
-		if (it1 != links.end()) {
-			it1->second++;
+		switch (buff[i * 2]) {
+		// mouse events
+		case 0:
+			flag = false;
+		case 1:
+			XTestFakeButtonEvent(disp, buff[shift + 1], flag, 0);
 			continue;
-		}
-
-		links.insert(std::make_pair(tmp, 1));
+		// keyboard events
+		case 2:
+			flag = false;
+		case 3:
+			XTestFakeKeyEvent(disp, buff[shift + 1], flag, 0);
+		// incorrect event
+		default: continue;
+		}	
 	}
-
-	while (links.size() > 0xff) {
-		it1 = it2 = links.begin();
-
-		for ( ; it1 != links.end(); it1++) {
-			if (it1->second < it2->second) {
-				it2 = it1;
-			}
-		}
-
-		links.erase(it2);
-	}
-
-	tmp = links.size();
-	memcpy(buff, &tmp, U32S);
-
-	for (auto &p : links) {
-		memcpy(buff + U32S, &p.first, U32S);
-		buff += U32S;
-	}
-
-	size = tmp * U32S + U32S;
 }
 
-void x11_server::color_linking(pix &pixel) {
+void X11::LinkColor(pix &pixel) {
 	std::map<uint32_t, size_t>::iterator it;
 
 	if ((it = links.find(pixel.u32())) != links.end()) {
@@ -119,8 +74,8 @@ void x11_server::color_linking(pix &pixel) {
 	}
 }
 
-void x11_server::pixels_vector(std::vector<pix> &arr) {
-	uint32_t size = attrs.width * attrs.height;
+void X11::Vector(std::vector<pix> &arr) {
+	uint32_t size = maxpix;
 	pix one;
 
 	XShmGetImage(disp, root, img, 0, 0, AllPlanes);
@@ -137,9 +92,12 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 			 + abs(orig[1] - one.g)
 			 + abs(orig[2] - one.b) < comp;
 	};
-
+	/**
+	 *	Defines the segments of the screen that have not
+	 *	changed from the previous frame.
+	 */
 	auto eqlseg = [&](void) {
-		RET_IF_VOID(!fsend);
+		RET_IF_VOID(!firstsend);
 		one.eqn = 0;
 
 		while (eq(orig, prev) && size > 0) {
@@ -158,24 +116,29 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 			arr.push_back(one);
 		}
 	};
-
+	/**
+	 *	Defines equal pixels based on a custom parameter.
+	 *	If the color was in the hash table, set the flag.
+	 */
 	auto cmpseg = [&](void) {
 		one.set(orig);
 
-		while (cmp() && one.num < 0xfe && size > 0) {
+		while (cmp() && one.num < 0xFE && size > 0) {
 			memcpy(next, orig, 3);
 			one.num++;
 			size--;
+
 			orig += 4;
 			next += 4;
 			prev += 4;
 		}
 
 		if (one.num != 0) {
-			color_linking(one);
+			LinkColor(one);
 			arr.push_back(one);
 		}
 	};
+
 
 	while (size != 0) {
 		eqlseg();
@@ -185,36 +148,59 @@ void x11_server::pixels_vector(std::vector<pix> &arr) {
 	orig  = prevb;
 	prevb = nextb;
 	nextb = orig;
-	fsend = true;
+	firstsend = true;
 }
+/**
+ *	Function for creating a hash table of colors. The number
+ *	of colors must not exceed 255 colors, so that the color
+ *	link does not exceed 1 byte.
+ */
+uint8_t X11::LinksTable(byte *links_table) {
+	std::map<uint32_t, size_t>::iterator it1, it2;
+	std::vector<pix> list;
 
-void x11_server::set_mouse(uint16_t x, uint16_t y) {
-	XTestFakeMotionEvent(disp, 0, x, y, 0);
-}
+	Vector(list);
+	firstsend = false;
 
-void x11_server::set_events(byte *buff, uint8_t len) {
-	for (uint8_t i = 0; i < len; i++) {
-		bool f = true;
-		uint16_t shift = i * 2;
+	for (auto &p : list) {
+		it2 = links.end();
 
-		switch (buff[i * 2]) {
-		// mouse events
-		case 0:
-			f = false;
-		case 1:
-			XTestFakeButtonEvent(disp, buff[shift + 1], f, 0);
+		if ((it1 = links.find(p.u32())) != it2) {
+			it1->second++;
 			continue;
-		// keyboard events
-		case 2:
-			f = false;
-		case 3:
-			XTestFakeKeyEvent(disp, buff[shift + 1], f, 0);
-		default:
-			continue;
-		}	
+		}
+
+		links.insert(std::make_pair(p.u32(), 1));
 	}
+
+	while (links.size() > 0xFF) {
+		it1 = links.begin();
+		it2 = links.begin();
+
+		for ( ; it1 != links.end(); it1++) {
+			if (it1->second < it2->second) {
+				it2 = it1;
+			}
+		}
+
+		links.erase(it2);
+	}
+
+	for (auto &p : links) {
+		memcpy(links_table, &p.first, U32S);
+		links_table += U32S;
+	}
+
+	return static_cast<uint8_t>(links.size());
 }
 
-int x11_server::pixs_num(void) {
-	return img->width * img->height;
+X11::~X11(void) {
+	XShmDetach(disp, &shm);
+	XDestroyImage(img);
+	shmdt(shm.shmaddr);
+	XTestGrabControl(disp, false);
+	XCloseDisplay(disp);
+
+	delete[] nextb;
+	delete[] prevb;
 }
