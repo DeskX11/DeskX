@@ -9,7 +9,7 @@ private:
 	int sock, packlim, userlim;
 	bool sender = false;
 	sddr_struct own, out;
-	uint8_t pid = 0;
+	uint8_t pid = 1;
 
 	bool BufferCheck(byte &);
 	int Send(byte *, int);
