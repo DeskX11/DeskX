@@ -35,6 +35,7 @@ int UDP::SendV(byte *buff) {
 
 	memcpy(pack + 1, buff, userlim);
 	pack[0] = pid++;
+	pid += (pid == 0) ? 1 : 0;
 
 	byte *back = reinterpret_cast<byte *>(&out);
 
@@ -54,7 +55,7 @@ int UDP::SendV(byte *buff) {
 int UDP::RecvV(byte *buff) {
 	byte pack[packlim];
 	bool flag = false;
-	uint8_t atts, id;
+	uint8_t atts, id = 0;
 	uint32_t out;
 	int length;
 
@@ -74,7 +75,7 @@ int UDP::RecvV(byte *buff) {
 		RET_IF(Send(back, U32S) != U32S, -2);
 		BREAK_IF(!BufferCheck(id));
 
-		if (id != pack[0]) {
+		if (id != pack[0] && id != 0) {
 			memcpy(buff, pack + 1, userlim);
 			return 1;
 		}
