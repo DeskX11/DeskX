@@ -67,18 +67,17 @@ int UDP::RecvV(byte *buff) {
 	}
 
 	RET_IF(!flag, -1);
-	out = std::accumulate(pack + 1, pack + packlim, 0);
+	out  = std::accumulate(pack + 1, pack + packlim, 0);
+	flag = false;
 
 	for (atts = 0; atts < UDP_ATTEMPTS; atts++) {
 		RET_IF(Send(back, U32S) != U32S, -2);
 		BREAK_IF(!BufferCheck(id));
 
-		BREAK_IF((flag = id != pack[0]));
-	}
-
-	if (flag) {
-		memcpy(buff, pack + 1, userlim);
-		return 1;
+		if (id != pack[0]) {
+			memcpy(buff, pack + 1, userlim);
+			return 1;
+		}
 	}
 
 	return 0;
