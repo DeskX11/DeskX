@@ -96,7 +96,7 @@ struct sddr_struct {
 };
 
 struct input {
-	std::string ip = "", pass = "", cmd = "rat",
+	std::string ip = "", pass = "pass", cmd = "rat",
 				events = "tcp",  screen = "tcp";
 	bool secure = false;
 	uint8_t comp = 15;

@@ -21,6 +21,7 @@ I have a server at home with a large number of Linux virtual machines to which I
 ## An example of working with compression
 
 <p align="center"><img src="./info/example.png"></p>
+Video example of how the program works (compression parameter is 16, gigabit LAN is used): https://youtu.be/pDRSAVssPek
 
 ## Compression algorithm
 
