@@ -69,12 +69,14 @@ constexpr size_t EQUAL_BLOCK	= U32S + 1;
  *		1. Mode
  *		2. Password (MD5)
  *		3. Difference between pixels
+ *		4. Screen protocol
+ *		5. Events protocol
  *
  *	TABLE_SIZE:
  *		1. Number of items per table
  *		2. Table elements
  */
-constexpr size_t AUTH_SIZE	= 2 + MD5_DIGEST_LENGTH;
+constexpr size_t AUTH_SIZE	= 4 + MD5_DIGEST_LENGTH;
 constexpr size_t TABLE_SIZE	= U32S * 255 + 1;
 
 constexpr size_t UDP_HEADER = 68;

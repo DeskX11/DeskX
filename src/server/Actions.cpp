@@ -148,7 +148,7 @@ void Actions::EventsTCP(uint16_t port) {
 	byte buff[100], *ptr = buff + U16S * 2;
 	uint16_t x, y, len;
 	uint8_t  esize;
-
+std::cout << "EventsTCP \n";
 	for (;;) {
 		BREAK_IF(!Global::net->Recv(buff, 1));
 		len = U16S * 2 + (esize = *buff) * 2;
@@ -167,9 +167,7 @@ void Actions::EventsTCP(uint16_t port) {
 /**
  *	Remote control start.
  */
-void Actions::StartStream(uint8_t compression) {
-	bool events = Global::args.events == "UDP";
-	bool screen = Global::args.screen == "UDP";
+void Actions::StartStream(uint8_t compression, bool screen, bool events) {
 	uint16_t port1, port2;
 
 	RET_IF_VOID(!Actions::SendHeaders(compression));
@@ -187,6 +185,6 @@ void Actions::StartStream(uint8_t compression) {
 	}
 }
 
-void Actions::ScreenShot(uint8_t compression) {
+void Actions::ScreenShot(uint8_t compression, bool screen) {
 
 }

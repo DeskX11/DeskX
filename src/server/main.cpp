@@ -14,13 +14,19 @@ void Processing(byte *hash) {
 
 	RET_IF_VOID(!Global::net->Send(&res, 1) || res != 0);
 	Global::args.ip = Global::net->GetIp();
+	/**
+	 *	Protocols for screen and for events
+	 */
+	bool screen = req[MD5_DIGEST_LENGTH + 2] == 1;
+	bool events = req[MD5_DIGEST_LENGTH + 3] == 1;
 
 	switch (*req) {
 	case 0:
 		/**
 		 *	Remote control mode
 		 */
-		Actions::StartStream(req[MD5_DIGEST_LENGTH + 1]);
+		Actions::StartStream(req[MD5_DIGEST_LENGTH + 1], screen,
+							 events);
 		delete Global::x11;
 		break;
 
@@ -28,7 +34,7 @@ void Processing(byte *hash) {
 		/**
 		 *	Server screenshot capture mode
 		 */
-		Actions::ScreenShot(req[MD5_DIGEST_LENGTH  + 1]);
+		Actions::ScreenShot(req[MD5_DIGEST_LENGTH  + 1], screen);
 		delete Global::x11;
 		break;
 

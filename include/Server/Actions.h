@@ -13,8 +13,8 @@ private:
 	static void ScreenTCP(void);
 
 public:
-	static void StartStream(uint8_t);
-	static void ScreenShot(uint8_t);
+	static void StartStream(uint8_t, bool, bool);
+	static void ScreenShot(uint8_t, bool);
 };
 
 #endif

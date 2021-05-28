@@ -22,7 +22,7 @@ inline std::string man_text("\033[1mDeskX\033[0m - Program for remote control "
 "	rat 			Start remote control\n"
 "	screenshot		Get a picture of the server desktop\n\n"
 "Example:\n"
-"	./dxс --ip=192.168.0.1 --port=4431 --password=secret --compression=15\n");
+"	./dxс --ip=192.168.0.1 --port=4431 --password=secret --compression=16\n");
 
 namespace Global {
 	inline TCP		*net;

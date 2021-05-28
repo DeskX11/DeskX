@@ -5,7 +5,7 @@
 class Actions {
 private:
 	static void ProtsSync(uint16_t &, uint16_t &);
-	static void Authorization(byte *, uint8_t);
+	static void Authorization(byte *, bool, bool, uint8_t);
 	static void GetHeaders(void);
 
 	static void EventsUDP(uint16_t, bool *);

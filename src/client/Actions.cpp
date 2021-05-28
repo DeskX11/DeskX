@@ -4,11 +4,14 @@
  *	Authorization function. Password hash and compression level
  *	are sent
  */
-void Actions::Authorization(byte *req, uint8_t mod) {
-	byte res;
+void Actions::Authorization(byte *req, bool screen, bool events,
+							uint8_t mod) {
+	byte res, pscr = screen ? 1 : 0, pevt = events ? 1 : 0;
 	bool status;
 
-	req[AUTH_SIZE - 1] = Global::args.comp;
+	req[MD5_DIGEST_LENGTH + 1] = Global::args.comp;
+	req[MD5_DIGEST_LENGTH + 2] = pscr;
+	req[MD5_DIGEST_LENGTH + 3] = pevt;
 	req[0] = mod;
 
 	status = Global::net->Send(req, AUTH_SIZE);
@@ -134,7 +137,7 @@ void Actions::StartStreaming(byte *request) {
 	bool screen = Global::args.screen == "UDP";
 	uint16_t port1, port2;
 
-	Actions::Authorization(request, 0);
+	Actions::Authorization(request, screen, events, 0);
 	Actions::GetHeaders();
 	Actions::ProtsSync(port1, port2);
 
