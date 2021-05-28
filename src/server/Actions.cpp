@@ -148,7 +148,7 @@ void Actions::EventsTCP(uint16_t port) {
 	byte buff[100], *ptr = buff + U16S * 2;
 	uint16_t x, y, len;
 	uint8_t  esize;
-std::cout << "EventsTCP \n";
+
 	for (;;) {
 		BREAK_IF(!Global::net->Recv(buff, 1));
 		len = U16S * 2 + (esize = *buff) * 2;
