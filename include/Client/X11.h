@@ -23,7 +23,7 @@ private:
 
 public:
 	void Set(byte *, uint32_t len = 0);
-	uint8_t GetEvents(byte *, bool &);
+	uint8_t GetEvents(byte *);
 	void SetLinks(byte *, uint32_t);
 	void AddLinks(uint8_t, byte *);
 	X11(uint32_t, uint32_t);

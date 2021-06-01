@@ -8,10 +8,10 @@ private:
 	static void Authorization(byte *, bool, bool, uint8_t);
 	static void GetHeaders(void);
 
-	static void EventsUDP(uint16_t, bool *);
-	static void EventsTCP(uint16_t, bool *);
-	static void ScreenUDP(uint16_t, bool &);
-	static void ScreenTCP(bool &);
+	static void EventsUDP(uint16_t);
+	static void EventsTCP(uint16_t);
+	static void ScreenUDP(uint16_t);
+	static void ScreenTCP(void);
 
 public:
 	static void StartStreaming(byte *);

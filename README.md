@@ -21,7 +21,7 @@ I have a server at home with a large number of Linux virtual machines to which I
 ## An example of working with compression
 
 <p align="center"><img src="./info/example.png"></p>
-Video example of how the program works (compression parameter is 16, protocol is TCP, gigabit LAN is used): https://youtu.be/pDRSAVssPek
+Video example of how the program works (compression parameter is 16, protocol for events and screen is TCP, gigabit LAN is used): https://youtu.be/pDRSAVssPek
 
 ## Compression algorithm
 
@@ -48,14 +48,16 @@ After these steps 2 files will be compiled: `dxc` (the client part, which must b
 
 ## How to get best performance?
 
-Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. To reduce transmission latency, you can try changing the data transfer protocol (UDP or TCP) for both screen and events. Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN.
+Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. To reduce transmission latency, you can try changing the data transfer protocol for both screen and events (according to my observations, the best option is `--screen=TCP` and `--events=UDP`). Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN.
 
 ## Subsequent updates
 
-1. <del>Transmission of frames using the UDP protocol.</del>
-2. MTU change at the time of launching the program.
-3. Fixing a bug with reconnecting to the server.
-4. GUI part of the program.
+- <del>Transmission of frames using the UDP protocol.</del>
+- MTU change at the time of launching the program.
+- <del>Fixing a bug with reconnecting to the server (TCP).</del>
+- Fixing a bug with reconnecting to the server (UDP).
+- Make .deb package creator.
+- GUI part of the program.
 
 ## Requirements
 

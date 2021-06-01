@@ -137,7 +137,7 @@ void X11::Set(byte *ptr, uint32_t input) {
 	}
 }
 
-uint8_t X11::GetEvents(byte *buff, bool &done) {
+uint8_t X11::GetEvents(byte *buff) {
 	uint16_t *y = reinterpret_cast<uint16_t *>(buff + U16S);
 	uint16_t *x = reinterpret_cast<uint16_t *>(buff);
 	unsigned int mask;
@@ -182,8 +182,7 @@ uint8_t X11::GetEvents(byte *buff, bool &done) {
 		 *	If exit key is pressed
 		 */
 		if (value == EXIT_KEY && type > 1) {
-			done = true;
-			return 0;
+			exit(1);
 		}
 
 		buff[size * 2 + 1] = value;

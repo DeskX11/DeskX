@@ -78,7 +78,7 @@ void Actions::ScreenUDP(uint16_t port) {
 			(*num)++;
 		}
 
-		RET_IF_VOID(!net.SendV(buff));
+		BREAK_IF(!net.SendV(buff));
 		pixlist.clear();
 	}
 }
@@ -112,7 +112,7 @@ void Actions::ScreenTCP(void) {
 		}
 
 		size = *num + U32S;
-		RET_IF_VOID(!Global::net->Send(buff, size));
+		BREAK_IF(!Global::net->Send(buff, size));
 
 		pixlist.clear();
 	}

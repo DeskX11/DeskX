@@ -48,7 +48,10 @@ bool TCP::Recv(byte *buff, uint32_t size) {
 	int step = 0, len;
 
 	while ((len = recv(sock, buff + step, size, 0)) != size) {
-		RET_IF(len < 0, false);
+		if (len < 1) {
+			Tools::RmSocket(sock);
+			return false;
+		}
 		size -= len;
 		step += len;
 	}
@@ -59,6 +62,8 @@ bool TCP::Recv(byte *buff, uint32_t size) {
 bool TCP::Send(byte *buff, uint32_t size) {
 	int sock = (sender) ? sock1 : sock2;
 	int step = 0, len;
+
+	RET_IF(sock == -1, false);
 
 	while ((len = send(sock, buff + step, size, 0)) != size) {
 		RET_IF(len < 0, false);

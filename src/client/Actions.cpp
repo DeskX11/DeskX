@@ -66,14 +66,14 @@ void Actions::ProtsSync(uint16_t &port1, uint16_t &port2) {
 /**
  *	Screen data transmission function via TCP protocol.
  */
-void Actions::ScreenTCP(bool &flag) {
+void Actions::ScreenTCP(void) {
 	uint32_t size;
 
 	byte *pack = new byte[Global::x11->Size()];
 	byte *sptr = (byte *)&size;
 	assert(pack);
 
-	for (; !flag;) {
+	for (;;) {
 		BREAK_IF(!Global::net->Recv(sptr, U32S));
 		BREAK_IF(size < COLOR_BLOCK);
 
@@ -86,11 +86,11 @@ void Actions::ScreenTCP(bool &flag) {
 /**
  *	Screen data transmission function via UDP protocol.
  */
-void Actions::ScreenUDP(uint16_t port, bool &flag) {
+void Actions::ScreenUDP(uint16_t port) {
 	UDP net(Tools::MTU(), port);
 	byte pack[net.Size()];
 
-	for (; !flag;) {
+	for (;;) {
 		BREAK_IF(!net.RecvV(pack));
 		Global::x11->Set(pack);
 	}
@@ -99,41 +99,40 @@ void Actions::ScreenUDP(uint16_t port, bool &flag) {
  *	Function of receiving keyboard and mouse events via UDP
  *	protocol. Runs in a separate thread.
  */
-void Actions::EventsUDP(uint16_t port, bool *flag) {
+void Actions::EventsUDP(uint16_t port) {
 	UDP net(Tools::MTU(), port, Global::args.ip);
 	byte pack[net.Size()], *buff = pack + 1;
 
 	for (;;) {
-		*pack = Global::x11->GetEvents(buff, *flag);
-		BREAK_IF(*flag || !net.SendV(pack));
+		*pack = Global::x11->GetEvents(buff);
+		BREAK_IF(!net.SendV(pack));
 	}
 
-	*flag = true;
+	ERROR(true, "The server stopped responding to events.")
 }
 /**
  *	Function of receiving keyboard and mouse events via TCP
  *	protocol. Runs in a separate thread.
  */
-void Actions::EventsTCP(uint16_t port, bool *flag) {
+void Actions::EventsTCP(uint16_t port) {
 	constexpr size_t size = U16S * 2 + 1;
 	byte pack[100], *buff = pack + 1;
 	size_t len;
 
 	for (;;) {
-		*pack = Global::x11->GetEvents(buff, *flag);
+		*pack = Global::x11->GetEvents(buff);
 		len = *pack * 2 + size;
-		BREAK_IF(*flag);
 
 		BREAK_IF(!Global::net->Send(pack, len));
 	}
 
-	*flag = true;
+	ERROR(true, "The server stopped responding to events.")
 }
 /**
  *	Remote control start.
  */
 void Actions::StartStreaming(byte *request) {
-	bool events = Global::args.events == "UDP", flag = false;
+	bool events = Global::args.events == "UDP";
 	bool screen = Global::args.screen == "UDP";
 	uint16_t port1, port2;
 
@@ -147,8 +146,8 @@ void Actions::StartStreaming(byte *request) {
 	}
 
 	std::thread thr((events) ? Actions::EventsUDP
-							 : Actions::EventsTCP, port2, &flag);
-	(screen) ? Actions::ScreenUDP(port1, flag) : Actions::ScreenTCP(flag);
+							 : Actions::EventsTCP, port2);
+	(screen) ? Actions::ScreenUDP(port1) : Actions::ScreenTCP();
 	if (thr.joinable()) {
 		thr.join();
 	}

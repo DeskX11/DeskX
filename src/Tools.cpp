@@ -30,10 +30,11 @@ uint16_t Tools::FreePort(uint16_t start) {
 	return port;
 }
 
-void Tools::RmSocket(int fd) {
+void Tools::RmSocket(int &fd) {
 	if (fd > -1) {
 		shutdown(fd, SHUT_RDWR);
 		close(fd);
+		fd = -1;
 	}
 }
 
@@ -121,6 +122,7 @@ void Tools::SetOpts(int sock) {
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,  opt, sizeof(tv));
 	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,  opt, sizeof(tv));
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &re, sizeof(re));
+	setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &re, sizeof(re));
 }
 
 void Tools::SockBuffer(int sock, uint64_t size) {

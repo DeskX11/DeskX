@@ -11,7 +11,7 @@ private:
 	sddr_struct own, out;
 	uint8_t pid = 1;
 
-	bool BufferCheck(byte &);
+	bool BufferCheck(byte *, size_t);
 	int Send(byte *, int);
 	int Recv(byte *, int);
 

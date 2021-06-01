@@ -8,7 +8,7 @@ namespace Tools {
 	input ArgsRead(int, char **);
 	uint16_t FreePort(uint16_t);
 	void SockBuffer(int, uint64_t);
-	void RmSocket(int);
+	void RmSocket(int &);
 	void SetOpts(int);
 	size_t MTU(void);
 }

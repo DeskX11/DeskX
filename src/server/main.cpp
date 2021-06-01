@@ -28,7 +28,7 @@ void Processing(byte *hash) {
 		Actions::StartStream(req[MD5_DIGEST_LENGTH + 1], screen,
 							 events);
 		delete Global::x11;
-		break;
+		return;
 
 	case 1:
 		/**
@@ -36,7 +36,7 @@ void Processing(byte *hash) {
 		 */
 		Actions::ScreenShot(req[MD5_DIGEST_LENGTH  + 1], screen);
 		delete Global::x11;
-		break;
+		return;
 
 	default:
 		/**

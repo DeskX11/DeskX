@@ -21,8 +21,8 @@ UDP::UDP(int mtu, int port, std::string ip) {
 	// 1 byte is reserved for packet id.
 }
 
-bool UDP::BufferCheck(byte &id) {
-	return recvfrom(sock, &id, 1, MSG_PEEK, nullptr, 0) == 1;
+bool UDP::BufferCheck(byte *data, size_t size) {
+	return recvfrom(sock, data, size, MSG_PEEK, nullptr, 0) == size;
 }
 /**
  *	Sending data with a guaranteed receipt. The receiver is obliged
@@ -35,17 +35,18 @@ int UDP::SendV(byte *buff) {
 
 	memcpy(pack + 1, buff, userlim);
 	pack[0] = pid++;
-	pid += (pid == 0) ? 1 : 0;
 
 	byte *back = reinterpret_cast<byte *>(&out);
 
 	for (uint8_t atts = 0; atts < UDP_ATTEMPTS; atts++) {
 		RET_IF(Send(pack, packlim) != packlim, -2);
-		RET_IF(Recv(back, U32S) < 0, -1);
-		RET_IF(out == in, 1);
+		NEXT_IF(!BufferCheck(back, U32S));
+		Recv(back, U32S);
+
+		BREAK_IF(out == in);
 	}
 
-	return 0;
+	return out == in ? 1 : 0;
 }
 /**
  *	Receiving data with sending a response. After receiving data, the
@@ -54,28 +55,23 @@ int UDP::SendV(byte *buff) {
  */
 int UDP::RecvV(byte *buff) {
 	byte pack[packlim];
-	bool flag = false;
-	uint8_t atts;
 	uint32_t out;
-	int length;
 
+	RET_IF(Recv(pack, packlim) != packlim, -1);
+
+	out = std::accumulate(pack + 1, pack + packlim, 0);
 	byte *back = reinterpret_cast<byte *>(&out);
 
-	for (atts = 0; atts < UDP_ATTEMPTS; atts++) {
-		length = Recv(pack, packlim);
-		RET_IF(length < 0, -1);
-		BREAK_IF((flag = length == packlim));
-	}
-
-	RET_IF(!flag, -1);
-	out  = std::accumulate(pack + 1, pack + packlim, 0);
-	flag = false;
-
-	for (atts = 0; atts < UDP_ATTEMPTS; atts++) {
+	for (uint8_t atts = 0; atts < UDP_ATTEMPTS; atts++) {
 		RET_IF(Send(back, U32S) != U32S, -2);
-		BREAK_IF(!BufferCheck(pid));
+		NEXT_IF(!BufferCheck(&pid, 1));
 
-		if (pid != pack[0] && pid != 0) {
+		if (pid == pack[0]) {
+			Recv(pack, packlim);
+			continue;
+		}
+
+		if (pid != pack[0]) {
 			memcpy(buff, pack + 1, userlim);
 			return 1;
 		}
