@@ -78,8 +78,6 @@ constexpr size_t EQUAL_BLOCK	= U32S + 1;
  */
 constexpr size_t AUTH_SIZE	= 4 + MD5_DIGEST_LENGTH;
 constexpr size_t TABLE_SIZE	= U32S * 255 + 1;
-
-constexpr size_t UDP_HEADER = 68;
 /**
  *	Declaration of used structures.
  */
@@ -99,7 +97,7 @@ struct input {
 	std::string ip = "", pass = "pass", cmd = "rat",
 				events = "tcp",  screen = "tcp";
 	bool secure = false;
-	uint8_t comp = 15;
+	uint8_t comp = 16;
 	int port = 0;
 };
 

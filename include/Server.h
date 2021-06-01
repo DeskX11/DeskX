@@ -7,7 +7,8 @@
 #include "Server/Actions.h"
 
 inline std::string man_text("\033[1mDeskX\033[0m - Program for remote "
-"control of a computer in a local network. Server side.\n\n"
+"control of a computer in a local network. Server side.\n"
+"GitHub: https://github.com/DeskX11/DeskX\n\n"
 "Usage: ./dxs [options]\n"
 "Options (all options are required):\n"
 "	--port			Connection port\n"

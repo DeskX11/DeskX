@@ -47,7 +47,7 @@ Window X11::NewWindow(int width, int height, bool full) {
 	int white = WhitePixel(disp, scr);
 
 	Window w = XCreateSimpleWindow(disp, RootWindow(disp, scr), 0, 0,
-								   width, height, 1, black, white );
+								   width, height, 1, black, white  );
 	if (full) {
 		FullScreen(w);
 	}

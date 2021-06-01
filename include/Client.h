@@ -7,7 +7,7 @@
 #include "Client/Actions.h"
 
 inline std::string man_text("\033[1mDeskX\033[0m - Program for remote control "
-"of a computer in a local network. Client side.\n\n"
+"of a computer in a local network. Client side.\nGitHub: https://github.com/DeskX11/DeskX\n\n"
 "Usage: ./dxс [options]\n"
 "Options:\n"
 "	--ip			Ip address of the server\n"
