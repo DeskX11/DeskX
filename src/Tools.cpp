@@ -111,23 +111,3 @@ input Tools::ArgsRead(int argc, char **argv) {
 	return retval;
 }
 
-void Tools::SetOpts(int sock) {
-	struct timeval tv;
-	int re = 1;
-
-	char *opt = reinterpret_cast<char *>(&tv);
-	tv.tv_sec  = 6;
-	tv.tv_usec = 0;
-
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,  opt, sizeof(tv));
-	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,  opt, sizeof(tv));
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &re, sizeof(re));
-	setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &re, sizeof(re));
-}
-
-void Tools::SockBuffer(int sock, uint64_t size) {
-	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (void *)&size, U64S);
-	setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (void *)&size, U64S);
-}
-
-size_t Tools::MTU(void) { return 1500; }

@@ -2,21 +2,30 @@
 #ifndef _DESKX_NETWORK_UDP_H_
 #define _DESKX_NETWORK_UDP_H_
 
-#define UDP_ATTEMPTS (uint8_t)20
+#define UDP_ATTEMPTS (uint8_t)8
+#define UDP_MTU 1500
+
+using namespace std::chrono;
+using std::chrono::system_clock;
 
 class UDP {
 private:
 	int sock, packlim, userlim;
-	bool sender = false;
 	sddr_struct own, out;
-	uint8_t pid = 1;
+	bool sender = false;
+	timeval tout = {0, 0};
+	byte *pack, *back;
+	uint8_t pid = 0;
+	char *toptr;
 
-	bool BufferCheck(byte *, size_t);
+	void RecvTimeout(long, bool a = false);
+	bool CheckBuffer(byte *);
+	void ClearBuffer(void);
 	int Send(byte *, int);
 	int Recv(byte *, int);
 
 public:
-	UDP(int, int, std::string ip = "");
+	UDP(int, std::string ip = "");
 	int Size(void) { return userlim; }
 	int SendV(byte *);
 	int RecvV(byte *);

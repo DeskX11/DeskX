@@ -12,9 +12,11 @@
 #include <netinet/tcp.h>
 #include <openssl/md5.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <iostream>
 #include <sys/shm.h>
+#include <sys/time.h>
 #include <functional>
 #include <algorithm>
 #include <numeric>
@@ -23,6 +25,8 @@
 #include <cstring>
 #include <string>
 #include <thread>
+#include <chrono>
+#include <ctime>
 #include <map>
 /**
  *	Macro set.
@@ -38,6 +42,7 @@ typedef unsigned char byte;
  *	The size of the data types used.
  */
 constexpr size_t SDDR_SIZE	= sizeof(sockaddr_in);
+constexpr size_t TV_SIZE	= sizeof(timeval);
 constexpr size_t U64S		= sizeof(uint64_t);
 constexpr size_t U32S		= sizeof(uint32_t);
 constexpr size_t U16S		= sizeof(uint16_t);

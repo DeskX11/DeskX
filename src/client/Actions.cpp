@@ -82,25 +82,28 @@ void Actions::ScreenTCP(void) {
 	}
 
 	delete[] pack;
+	ERROR(true, "Server stopped sending frames.");
 }
 /**
  *	Screen data transmission function via UDP protocol.
  */
 void Actions::ScreenUDP(uint16_t port) {
-	UDP net(Tools::MTU(), port);
+	UDP net(port);
 	byte pack[net.Size()];
 
 	for (;;) {
 		BREAK_IF(!net.RecvV(pack));
 		Global::x11->Set(pack);
 	}
+
+	ERROR(true, "Server stopped sending frames.");
 }
 /**
  *	Function of receiving keyboard and mouse events via UDP
  *	protocol. Runs in a separate thread.
  */
 void Actions::EventsUDP(uint16_t port) {
-	UDP net(Tools::MTU(), port, Global::args.ip);
+	UDP net(port, Global::args.ip);
 	byte pack[net.Size()], *buff = pack + 1;
 
 	for (;;) {

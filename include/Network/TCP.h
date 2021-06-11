@@ -8,6 +8,8 @@ private:
 	int sock1, sock2;
 	sddr_struct own, out;
 
+	void SetOpts(int &);
+
 public:
 	TCP(int, std::string ip = "");
 	bool Recv(byte *, uint32_t);

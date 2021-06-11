@@ -52,10 +52,8 @@ Fast data transfer depends on two factors: the size of the transmitted packet an
 
 ## Subsequent updates
 
-- <del>Transmission of frames using the UDP protocol.</del>
-- MTU change at the time of launching the program.
-- <del>Fixing a bug with reconnecting to the server (TCP).</del>
-- Fixing a bug with reconnecting to the server (UDP).
+- Fixing a bug with reconnecting to the server (TCP).
+- Server side as a daemon.
 - Make .deb package creator.
 - GUI part of the program.
 

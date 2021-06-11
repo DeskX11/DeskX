@@ -46,7 +46,7 @@ bool Actions::ProtsSync(uint16_t &port1, uint16_t &port2) {
  *	color blocks in the packet.
  */
 void Actions::ScreenUDP(uint16_t port) {
-	UDP net(Tools::MTU(), port, Global::args.ip);
+	UDP net(port, Global::args.ip);
 	byte buff[net.Size()], *ptr;
 	std::vector<pix> pixlist;
 	uint64_t tmp, size;
@@ -124,7 +124,7 @@ void Actions::ScreenTCP(void) {
  *	protocol. Runs in a separate thread.
  */
 void Actions::EventsUDP(uint16_t port) {
-	UDP net(Tools::MTU(), port);
+	UDP net(port);
 	byte buff[net.Size()], *ptr = buff + 1 + U16S * 2;
 	uint16_t x, y;
 
