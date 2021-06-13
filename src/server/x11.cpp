@@ -29,6 +29,8 @@ X11::X11(uint8_t value) {
 	nextb = new byte[attrs.width * attrs.height * 4];
 	prevb = new byte[attrs.width * attrs.height * 4];
 	assert(prevb && nextb);
+
+	maxval = Global::args.dvert ? 0xFE : 0xFD;
 }
 
 void X11::MouseXY(uint16_t x, uint16_t y) {
@@ -107,7 +109,8 @@ void X11::Vector(std::vector<pix> &arr) {
 	};
 
 	auto vrl = [&](void) {
-		RET_IF(size + one.num + attrs.width > maxpix, false);
+		RET_IF(size + one.num + attrs.width > maxpix
+			   || Global::args.dvert, false);
 		/**
 		 *	Checking the color of the screen segment on
 		 *	top of the current block. If the colors are
@@ -148,7 +151,7 @@ void X11::Vector(std::vector<pix> &arr) {
 	 */
 	auto cmpseg = [&](void) {
 		one.set(orig);
-		while (cmp() && one.num < 0xFD && size > 0) {
+		while (cmp() && one.num < maxval && size > 0) {
 			memcpy(next, orig, 3);
 			one.num++;
 			size--;
@@ -182,7 +185,7 @@ void X11::Vector(std::vector<pix> &arr) {
 }
 /**
  *	Function for creating a hash table of colors. The number
- *	of colors must not exceed 255 colors, so that the color
+ *	of colors must not exceed 256 colors, so that the color
  *	link does not exceed 1 byte.
  */
 uint8_t X11::LinksTable(byte *links_table) {

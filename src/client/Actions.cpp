@@ -12,6 +12,7 @@ void Actions::Authorization(byte *req, bool screen, bool events,
 	req[MD5_DIGEST_LENGTH + 1] = Global::args.comp;
 	req[MD5_DIGEST_LENGTH + 2] = pscr;
 	req[MD5_DIGEST_LENGTH + 3] = pevt;
+	req[MD5_DIGEST_LENGTH + 4] = Global::args.dvert ? 0 : 1;
 	req[0] = mod;
 
 	status = Global::net->Send(req, AUTH_SIZE);

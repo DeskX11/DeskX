@@ -20,6 +20,8 @@ void Processing(byte *hash) {
 	bool screen = req[MD5_DIGEST_LENGTH + 2] == 1;
 	bool events = req[MD5_DIGEST_LENGTH + 3] == 1;
 
+	Global::args.dvert = req[MD5_DIGEST_LENGTH + 4] == 0;
+
 	switch (*req) {
 	case 0:
 		/**

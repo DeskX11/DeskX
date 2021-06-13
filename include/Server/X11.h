@@ -84,7 +84,7 @@ private:
 	Display *disp = nullptr;
 	XWindowAttributes attrs;
 	XShmSegmentInfo shm;
-	byte *prevb, *nextb;
+	byte *prevb, *nextb, maxval;
 	size_t maxpix;
 	uint8_t comp;
 	Window root;

@@ -1,13 +1,9 @@
 <p align="center"><img height="120px" src="./info/logo.png"></p>
 <h4 align="center">DeskX - Remote control in a local network</h4>
 
-## About project
+## About project and reasons for creation
 
-The project was created for its own use within the home local network (it is not recommended to use it over the Internet without an encrypted tunnel).
-
-## About the reasons for creation
-
-I have a server at home with a large number of Linux virtual machines to which I needed remote access. All similar remote control programs I tried lagged in the process (banal scrolling in the browser). For this reason, a project was created that focuses on the fastest possible data transfer over the local network. The project works on all operating systems with X11. [Leave your review :)](https://github.com/DeskX11/DeskX/discussions/4)
+The project was created for its own use within the home local network (it is not recommended to use it over the Internet without an encrypted tunnel). I have a server at home with a large number of Linux virtual machines to which I needed remote access. All similar remote control programs I tried lagged in the process (banal scrolling in the browser or dragging windows). For this reason, a project was created that focuses on the fastest possible data transfer over the local network. The project works on all operating systems with X11. [Leave your review :)](https://github.com/DeskX11/DeskX/discussions/4)
 
 ## Functionality (not fully implemented)
 
@@ -25,7 +21,7 @@ Video example of how the program works (compression parameter is 16, protocol fo
 
 ## Compression algorithm
 
-The first step is to generate a hash table of colors that are most often found on the screen (up to 255 colors) on the server side. The color table is sent to the client side. Subsequently, 1 byte of the color identifier can be written to the place of writing 3 bytes of color. The next step is the lossy compression of the frame based on the allowable difference between the color bytes (the range of the difference can be changed by the user, this affects the packet size and picture quality). Also, in the process of sending the next frames, the program detects unchanged areas and makes an indication that nothing needs to be changed in this place on the screen, if it fails, it tries to refer to a similar color vertically or horizontally. Thus, it is possible to significantly reduce the size of the transmitted packet.
+The first step is to generate a hash table of colors that are most often found on the screen (up to 256 colors) on the server side. The color table is sent to the client side. Subsequently, 1 byte of the color identifier can be written to the place of writing 3 bytes of color. The next step is the lossy compression of the frame based on the allowable difference between the color bytes (the range of the difference can be changed by the user, this affects the packet size and picture quality). Also, in the process of sending the next frames, the program detects unchanged areas and makes an indication that nothing needs to be changed in this place on the screen, if it fails, it tries to refer to a similar color vertically or horizontally. Thus, it is possible to significantly reduce the size of the transmitted packet.
 
 ## Screen resolution
 
@@ -50,10 +46,13 @@ After these steps 2 files will be compiled: `dxc` (the client part, which must b
 
 Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. To reduce transmission latency, you can try changing the data transfer protocol for both screen and events (according to my observations, the best option is `--screen=TCP` and `--events=UDP`). Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN. As a last resort, you can also try to disable unnecessary effects such as window shadows.
 
+## How to get the best picture quality?
+
+You should take into account that the better the picture quality, the larger the packet size, and this will increase the delay. This moment will always be a compromise between quality and speed. To improve the quality of the picture, you can decrease the value of the parameter `--compression`. Also, to reduce distortion associated with shadow windows and other visual nuances, run the program with the `--disable-vert` parameter.
+
 ## Subsequent updates
 
 - Fixing a bug with reconnecting to the server (TCP).
-- Add `--disable-vert` argument.
 - Fix disconnect bug with long palette generation.
 - Server side as a daemon.
 - Make .deb package creator.

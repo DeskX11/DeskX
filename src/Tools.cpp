@@ -58,7 +58,8 @@ input Tools::ArgsRead(int argc, char **argv) {
 		{"--cmd=",			 9},
 		{"--ip=",			 8},
 		{"--events=",		12},
-		{"--screen=",		12}
+		{"--screen=",		12},
+		{"--disable-vert",	14}
 	};
 
 	auto cmp = [&](arg &a, char *str, char **p) {
@@ -105,6 +106,10 @@ input Tools::ArgsRead(int argc, char **argv) {
 
 		else if (cmp(l[7], argv[i], &ptr)) {
 			retval.screen = std::string(ptr);
+		}
+
+		else if (cmp(l[8], argv[i], &ptr)) {
+			retval.dvert = true;
 		}
 	}
 

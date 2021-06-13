@@ -85,12 +85,13 @@ constexpr size_t VERT_BLOCK		= 2;
  *		3. Difference between pixels
  *		4. Screen protocol
  *		5. Events protocol
+ *		6. Vertical compression
  *
  *	TABLE_SIZE:
  *		1. Number of items per table
  *		2. Table elements
  */
-constexpr size_t AUTH_SIZE	= 4 + MD5_DIGEST_LENGTH;
+constexpr size_t AUTH_SIZE	= 5 + MD5_DIGEST_LENGTH;
 constexpr size_t TABLE_SIZE	= U32S * 255 + 1;
 /**
  *	Declaration of used structures.
@@ -110,7 +111,7 @@ struct sddr_struct {
 struct input {
 	std::string ip = "", pass = "pass", cmd = "rat",
 				events = "tcp",  screen = "tcp";
-	bool secure = false;
+	bool secure = false, dvert = false;
 	uint8_t comp = 16;
 	int port = 0;
 };

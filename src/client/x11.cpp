@@ -125,7 +125,7 @@ void X11::Set(byte *ptr, uint32_t input) {
 		/**
 		 *	Color reference above horizontally
 		 */
-		else if (number == 0xFE) {
+		else if (!Global::args.dvert && number == 0xFE) {
 			number = ptr[1];
 			ptr += VERT_BLOCK;
 			len -= size5;
