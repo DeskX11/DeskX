@@ -25,7 +25,7 @@ Video example of how the program works (compression parameter is 16, protocol fo
 
 ## Compression algorithm
 
-The first step is to generate a hash table of colors that are most often found on the screen (up to 255 colors) on the server side. The color table is sent to the client side. Subsequently, 1 byte of the color identifier can be written to the place of writing 3 bytes of color. The next step is the lossy compression of the frame based on the allowable difference between the color bytes (the range of the difference can be changed by the user, this affects the packet size and picture quality). Also, in the process of sending the next frames, the program detects unchanged areas and makes an indication that nothing needs to be changed in this place on the screen. Thus, it is possible to significantly reduce the size of the transmitted packet.
+The first step is to generate a hash table of colors that are most often found on the screen (up to 255 colors) on the server side. The color table is sent to the client side. Subsequently, 1 byte of the color identifier can be written to the place of writing 3 bytes of color. The next step is the lossy compression of the frame based on the allowable difference between the color bytes (the range of the difference can be changed by the user, this affects the packet size and picture quality). Also, in the process of sending the next frames, the program detects unchanged areas and makes an indication that nothing needs to be changed in this place on the screen, if it fails, it tries to refer to a similar color vertically or horizontally. Thus, it is possible to significantly reduce the size of the transmitted packet.
 
 ## Screen resolution
 
@@ -48,11 +48,13 @@ After these steps 2 files will be compiled: `dxc` (the client part, which must b
 
 ## How to get best performance?
 
-Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. To reduce transmission latency, you can try changing the data transfer protocol for both screen and events (according to my observations, the best option is `--screen=TCP` and `--events=UDP`). Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN.
+Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. To reduce transmission latency, you can try changing the data transfer protocol for both screen and events (according to my observations, the best option is `--screen=TCP` and `--events=UDP`). Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN. As a last resort, you can also try to disable unnecessary effects such as window shadows.
 
 ## Subsequent updates
 
 - Fixing a bug with reconnecting to the server (TCP).
+- Add `--disable-vert` argument.
+- Fix disconnect bug with long palette generation.
 - Server side as a daemon.
 - Make .deb package creator.
 - GUI part of the program.

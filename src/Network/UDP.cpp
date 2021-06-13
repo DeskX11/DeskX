@@ -31,7 +31,7 @@ UDP::UDP(int port, std::string ip) {
 
 void UDP::RecvTimeout(long msec, bool slower) {
 	tout.tv_usec = (tout.tv_usec + msec) / 2;
-	tout.tv_sec  = (slower) ? tout.tv_sec + 1 : 0;
+	tout.tv_sec += (slower) ? 1 : 0;
 
 	RET_IF_VOID(pid != 0 && !slower);
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, toptr, TV_SIZE);
@@ -55,7 +55,10 @@ int UDP::Send(byte *buff, int size) {
 	assert(buff && size <= packlim);
 	return sendto(sock, buff, size, 0, ptr, SDDR_SIZE);
 }
-
+/**
+ *	Sending data with a guaranteed receipt. The receiver is obliged
+ *	to send back a byte sum to acknowledge receipt.
+ */
 int UDP::SendV(byte *buff) {
 	bool flag = false;
 	timeval start, end;
@@ -83,7 +86,10 @@ int UDP::SendV(byte *buff) {
 
 	return flag ? 1 : 0;
 }
-
+/**
+ *	Receiving data with sending a response. After receiving data, the
+ *	byte sum of the packet is sent in response.
+ */
 int UDP::RecvV(byte *buff) {
 	uint32_t *bs = reinterpret_cast<uint32_t *>(back);
 	uint32_t atts = 0;

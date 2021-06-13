@@ -92,6 +92,32 @@ void X11::Vector(std::vector<pix> &arr) {
 			 + abs(orig[1] - one.g)
 			 + abs(orig[2] - one.b) < comp;
 	};
+
+	auto inl = [&](void) {
+		RET_IF(arr.empty(), false);
+		/**
+		 *	If the eq flag is on, we are looking for the
+		 *	screen segment that was before the current
+		 *	block, otherwise we compare it with the color
+		 *	of the previous block.
+		 */
+		one.linkp = (!arr.back().eq) ? arr.back() == one
+				  : eq(orig - (one.num+1) * 4, orig - 4);
+		return one.linkp;
+	};
+
+	auto vrl = [&](void) {
+		RET_IF(size + one.num + attrs.width > maxpix, false);
+		/**
+		 *	Checking the color of the screen segment on
+		 *	top of the current block. If the colors are
+		 *	the same - refer to this color.
+		 */
+		byte *p1 = orig - (one.num + attrs.width) * 4;
+		byte *p2 = orig - one.num * 4;
+		return one.vert = eq(p1, p2);
+	};
+
 	/**
 	 *	Defines the segments of the screen that have not
 	 *	changed from the previous frame.
@@ -122,8 +148,7 @@ void X11::Vector(std::vector<pix> &arr) {
 	 */
 	auto cmpseg = [&](void) {
 		one.set(orig);
-
-		while (cmp() && one.num < 0xFE && size > 0) {
+		while (cmp() && one.num < 0xFD && size > 0) {
 			memcpy(next, orig, 3);
 			one.num++;
 			size--;
@@ -134,11 +159,16 @@ void X11::Vector(std::vector<pix> &arr) {
 		}
 
 		if (one.num != 0) {
-			LinkColor(one);
+			/**
+			 *	Trying to reference some existing screen
+			 *	color.
+			 */
+			if (firstsend && !vrl() && !inl()) {
+				LinkColor(one);
+			}
 			arr.push_back(one);
 		}
 	};
-
 
 	while (size != 0) {
 		eqlseg();

@@ -16,7 +16,7 @@ private:
 	XImage *img;
 	GC gc;
 
-	uint8_t size1, size2, size3;
+	uint8_t size1, size2, size3, size4, size5;
 
 	Window NewWindow(int, int, bool);
 	void FullScreen(Window &);

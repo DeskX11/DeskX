@@ -48,6 +48,7 @@ Window X11::NewWindow(int width, int height, bool full) {
 
 	Window w = XCreateSimpleWindow(disp, RootWindow(disp, scr), 0, 0,
 								   width, height, 1, black, white  );
+	XStoreName(disp, w, "DeskX - Remote control in a local network");
 	if (full) {
 		FullScreen(w);
 	}
@@ -73,12 +74,14 @@ void X11::ScreenProtocol(bool udp = false) {
 	size1 = (udp) ? 1 : LINKED_BLOCK;
 	size2 = (udp) ? 1 : EQUAL_BLOCK;
 	size3 = (udp) ? 1 : COLOR_BLOCK;
+	size4 = (udp) ? 1 : INSIDE_BLOCK;
+	size5 = (udp) ? 1 : VERT_BLOCK;
 }
 
 void X11::Set(byte *ptr, uint32_t input) {
 	uint32_t skip, len;
 	uint8_t number;
-	byte *pixs;
+	byte *pixs, *orig = (byte *)img->data;
 
 	if (input == 0) {
 		len  = *((uint16_t *)ptr);
@@ -103,12 +106,30 @@ void X11::Set(byte *ptr, uint32_t input) {
 		/**
 		 *	Equal blocks
 		 */
-		else if (number == 0xff) {
-			memcpy(&skip, ptr + 1, U32S);
+		else if (number == 0xFF && ptr[1] == 0x00) {
+			memcpy(&skip, ptr + 2, U32S);
 			scrshift += skip * 4;
 			ptr += EQUAL_BLOCK;
 			len -= size2;
 			number = 0;
+		}
+		/**
+		 *	Link to previous color
+		 */
+		else if (number == 0xFF) {
+			number = ptr[1];
+			ptr += INSIDE_BLOCK;
+			len -= size4;
+			pixs = orig + scrshift - 4;
+		}
+		/**
+		 *	Color reference above horizontally
+		 */
+		else if (number == 0xFE) {
+			number = ptr[1];
+			ptr += VERT_BLOCK;
+			len -= size5;
+			pixs = orig + scrshift - width * 4;
 		}
 		/**
 		 *	Compressed blocks
@@ -120,7 +141,7 @@ void X11::Set(byte *ptr, uint32_t input) {
 		}
 
 		BREAK_IF(scrshift >= max);
-	
+
 		for (uint8_t i = 0; i < number; i++) {
 			img->data[scrshift]		= pixs[0];
 			img->data[scrshift + 1] = pixs[1];

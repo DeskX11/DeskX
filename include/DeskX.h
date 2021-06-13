@@ -12,7 +12,6 @@
 #include <netinet/tcp.h>
 #include <openssl/md5.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <iostream>
 #include <sys/shm.h>
@@ -25,7 +24,6 @@
 #include <cstring>
 #include <string>
 #include <thread>
-#include <chrono>
 #include <ctime>
 #include <map>
 /**
@@ -62,11 +60,22 @@ constexpr size_t U16S		= sizeof(uint16_t);
  *
  *	EQUAL_BLOCK:
  *		1. Flag (0xFF)
+ *		2. Flag (0x00)
+ *		3. Number of repetitions
+ *
+ *	INSIDE_BLOCK:
+ *		1. Flag (0xFF)
+ *		2. Number of repetitions
+ *
+ *	VERT_BLOCK:
+ *		1. Flag (0xFE)
  *		2. Number of repetitions
  */
 constexpr size_t COLOR_BLOCK	= 4;
 constexpr size_t LINKED_BLOCK	= 3;
-constexpr size_t EQUAL_BLOCK	= U32S + 1;
+constexpr size_t EQUAL_BLOCK	= U32S + 2;
+constexpr size_t INSIDE_BLOCK	= 2;
+constexpr size_t VERT_BLOCK		= 2;
 /**
  *	Packet sizes transmitted over TCP protocol (Max size).
  *

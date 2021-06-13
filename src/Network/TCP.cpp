@@ -91,7 +91,7 @@ void TCP::SetOpts(int &s) {
 	int re = 1;
 
 	char *opt = reinterpret_cast<char *>(&tv);
-	tv.tv_sec  = 6;
+	tv.tv_sec  = 15;
 	tv.tv_usec = 0;
 
 	setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, &re, sizeof(re));

@@ -6,7 +6,7 @@ struct pix {
 	uint8_t num = 0, link_id = 0;
 	uint32_t eqn;
 	byte r, g, b;
-	bool link, eq;
+	bool link, eq, linkp, vert;
 
 	uint32_t u32(void) {
 		uint32_t buff;
@@ -19,8 +19,10 @@ struct pix {
 	}
 
 	void set(byte *pixs) {
-		link = false;
-		eq   = false;
+		linkp = false;
+		link  = false;
+		vert  = false;
+		eq    = false;
 		r = pixs[0];
 		g = pixs[1];
 		b = pixs[2];
@@ -33,8 +35,17 @@ struct pix {
 		byte *ptr = reinterpret_cast<byte *>(&buff);
 
 		if (eq) {
-			ptr[0] = 0xff;
-			memcpy(ptr + 1, &eqn, U32S);
+			ptr[0] = 0xFF;
+			ptr[1] = 0x00;
+			memcpy(ptr + 2, &eqn, U32S);
+		}
+		else if (vert) {
+			ptr[0] = 0xFE;
+			ptr[1] = num;
+		}
+		else if (linkp) {
+			ptr[0] = 0xFF;
+			ptr[1] = num;
 		}
 		else if (link) {
 			ptr[0] = 0;
@@ -51,9 +62,18 @@ struct pix {
 		return buff;
 	}
 
+	bool operator==(pix &block) {
+		return r == block.r
+			&& g == block.g
+			&& b == block.b;
+	}
+
 	uint8_t size(void) {
-		return (eq) ? EQUAL_BLOCK : ((link) ? LINKED_BLOCK
-											: COLOR_BLOCK);
+		return (eq) ? EQUAL_BLOCK
+					: ((link) ? LINKED_BLOCK
+							  : ((linkp) ? INSIDE_BLOCK
+										 : ((vert) ? VERT_BLOCK
+												   : COLOR_BLOCK)));
 	}
 };
 
