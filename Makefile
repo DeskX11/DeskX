@@ -4,3 +4,8 @@ client:
 	g++ src/Tools.cpp src/client/*.cpp src/Network/*.cpp $(FLAGS) -o dxc 
 server:
 	g++ src/Tools.cpp src/server/*.cpp src/Network/*.cpp $(FLAGS) -o dxs
+
+deb-client:
+	cd deb; ./build.sh client
+deb-server:
+	cd deb; ./build.sh server

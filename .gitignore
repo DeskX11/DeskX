@@ -36,3 +36,6 @@ dxs
 .DS_Store
 .oldcode
 *.zip
+
+deb/deskx-*
+*.deb

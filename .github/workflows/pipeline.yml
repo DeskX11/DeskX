@@ -13,9 +13,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: prepare
-      run : sudo apt install libx11-dev libxtst-dev libssl-dev
-    - name: build client
+    - name: Install dependencies
+      run : sudo apt install libx11-dev libxtst-dev libssl-dev libxext-dev
+    - name: Build client
       run: make client
-    - name: build server
+    - name: Build server
       run: make server
+    - name: Build deb package (server-side)
+      run: make deb-client
+    - name: Build deb package (client-side)
+      run: make deb-server
+    - name: Install deb packages
+      run: sudo dpkg -i deskx-*.deb
+    - name: Check deb client
+      run: dpkg-query --status deskx-client
+    - name: Check deb server
+      run: dpkg-query --status deskx-server
+
