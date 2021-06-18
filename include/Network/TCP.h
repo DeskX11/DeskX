@@ -16,7 +16,7 @@ public:
 	bool Send(byte *, uint32_t);
 	bool Accept(void);
 	bool Alive(void) { return init;  }
-	bool Exit(void)  { init = false; }
+	void Exit(void)  { init = false; }
 	void CloseConnection(void);
 	void BufferSize(uint64_t);
 	std::string GetIp(void);
