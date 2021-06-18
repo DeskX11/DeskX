@@ -50,7 +50,7 @@ Fast data transfer depends on two factors: the size of the transmitted packet an
 
 You should take into account that the better the picture quality, the larger the packet size, and this will increase the delay. This moment will always be a compromise between quality and speed. To improve the quality of the picture, you can decrease the value of the parameter `--compression`. Also, to reduce distortion associated with shadow windows and other visual nuances, run the program with the `--disable-vert` parameter.
 
-## Subsequent updates
+## Upcoming updates
 
 - Fixing a bug with reconnecting to the server (TCP).
 - Fix disconnect bug with long palette generation.
@@ -60,4 +60,6 @@ You should take into account that the better the picture quality, the larger the
 
 ## Requirements
 
-libx11-dev, libxtst-dev, libssl-dev, os with x11
+- OS with x11
+- `g++ make`
+- `libx11-dev libxtst-dev libssl-dev libxext-dev`
