@@ -132,7 +132,7 @@ void Tools::SetDisplay(std::string arg) {
 		ERROR(arg.empty(), "Argument 'display' was not set.");
 	}
 
-	std::string cmd = std::string("DISPLAY=") + arg; std::cout << cmd << "\n";
+	std::string cmd = std::string("DISPLAY=") + arg;
 	putenv(strdup(cmd.c_str()));
 }
 
@@ -142,6 +142,6 @@ void Tools::SetXAuth(std::string arg) {
 		ERROR(arg.empty(), "Argument 'xauth' was not set.");
 	}
 
-	std::string cmd = std::string("XAUTHORITY=") + arg; std::cout << cmd << "\n";
+	std::string cmd = std::string("XAUTHORITY=") + arg;
 	putenv(strdup(cmd.c_str()));
 }
