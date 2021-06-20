@@ -52,7 +52,11 @@ You should take into account that the better the picture quality, the larger the
 
 ## Can't open X-Display.
 
-This error usually occurs when you try to start `dxs` via ssh. To solve it, you need to specify the `--display` and `--xauth` arguments. `--xauth` - path to `.Xauthority` file, `--display` - display number, default value should be `:0` or `:0.0`. For more information you can read xauth, Xsecurity and xhost man pages.
+This error usually occurs when you try to start `dxs` via ssh. To solve it, you need to specify the `--display` and `--xauth` arguments.
+* --xauth - path to `.Xauthority` file.
+* --display - display number, default value should be `:0` or `:0.0`.
+
+For more information you can read xauth, Xsecurity and xhost man pages.
 
 ## Upcoming updates
 
