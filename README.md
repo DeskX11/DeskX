@@ -1,9 +1,9 @@
 <p align="center"><img height="120px" src="./info/logo.png"></p>
-<h4 align="center">DeskX - Remote control in a local network</h4>
+<h4 align="center">DeskX - Remote control program</h4>
 
 ## About project and reasons for creation
 
-The project was created for its own use within the home local network (it is not recommended to use it over the Internet without an encrypted tunnel). I have a server at home with a large number of Linux virtual machines to which I needed remote access. All similar remote control programs I tried lagged in the process (banal scrolling in the browser or dragging windows). For this reason, a project was created that focuses on the fastest possible data transfer over the local network. The project works on all operating systems with X11. [Leave your review :)](https://github.com/DeskX11/DeskX/discussions/4)
+The project was created for its own use within the home local network (you can use DeskX over the internet using port forwarding via ssh, with such a connection you only need to use the TCP protocol). I have a server at home with a large number of Linux virtual machines to which I needed remote access. All similar remote control programs I tried lagged in the process (banal scrolling in the browser or dragging windows). For this reason, a project was created that focuses on the fastest possible data transfer over the local network. The project works on all operating systems with X11. [Leave your review :)](https://github.com/DeskX11/DeskX/discussions/4)
 
 ## Functionality (not fully implemented)
 
@@ -50,12 +50,16 @@ Fast data transfer depends on two factors: the size of the transmitted packet an
 
 You should take into account that the better the picture quality, the larger the packet size, and this will increase the delay. This moment will always be a compromise between quality and speed. To improve the quality of the picture, you can decrease the value of the parameter `--compression`. Also, to reduce distortion associated with shadow windows and other visual nuances, run the program with the `--disable-vert` parameter.
 
+## Can't open X-Display.
+
+This error usually occurs when you try to start `dxs` via ssh. To solve it, you need to specify the `--display` and `--xauth` arguments. `--xauth` - path to `.Xauthority` file, `--display` - display number, default value should be `:0` or `:0.0`. For more information you can read xauth, Xsecurity and xhost man pages.
+
 ## Upcoming updates
 
 - Fixing a bug with reconnecting to the server (TCP).
 - Fix disconnect bug with long palette generation.
+- Stable bin files & .deb packs.
 - Server side as a daemon.
-- Make .deb package creator.
 - GUI part of the program.
 
 ## Requirements

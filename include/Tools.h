@@ -8,6 +8,8 @@ namespace Tools {
 	input ArgsRead(int, char **);
 	uint16_t FreePort(uint16_t);
 	void RmSocket(int &);
+	void SetDisplay(std::string);
+	void SetXAuth(std::string);
 }
 
 #endif

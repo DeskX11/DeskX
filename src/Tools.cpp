@@ -59,7 +59,9 @@ input Tools::ArgsRead(int argc, char **argv) {
 		{"--ip=",			 8},
 		{"--events=",		12},
 		{"--screen=",		12},
-		{"--disable-vert",	14}
+		{"--disable-vert",	14},
+		{"--xauth=",		12},
+		{"--display=",		12}
 	};
 
 	auto cmp = [&](arg &a, char *str, char **p) {
@@ -111,8 +113,35 @@ input Tools::ArgsRead(int argc, char **argv) {
 		else if (cmp(l[8], argv[i], &ptr)) {
 			retval.dvert = true;
 		}
+
+		else if (cmp(l[9], argv[i], &ptr)) {
+			retval.xauth = std::string(ptr);
+		}
+
+		else if (cmp(l[10], argv[i], &ptr)) {
+			retval.display = std::string(ptr);
+		}
 	}
 
 	return retval;
 }
 
+void Tools::SetDisplay(std::string arg) {
+	if (arg.empty()) {
+		arg = std::string(getenv("DISPLAY"));
+		ERROR(arg.empty(), "Argument 'display' was not set.");
+	}
+
+	std::string cmd = std::string("DISPLAY=") + arg; std::cout << cmd << "\n";
+	putenv(strdup(cmd.c_str()));
+}
+
+void Tools::SetXAuth(std::string arg) {
+	if (arg.empty()) {
+		arg = std::string(getenv("XAUTHORITY"));
+		ERROR(arg.empty(), "Argument 'xauth' was not set.");
+	}
+
+	std::string cmd = std::string("XAUTHORITY=") + arg; std::cout << cmd << "\n";
+	putenv(strdup(cmd.c_str()));
+}

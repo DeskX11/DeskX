@@ -4,7 +4,8 @@
 X11::X11(uint8_t value) {
 	XInitThreads();
 
-	disp  = XOpenDisplay(nullptr);
+	ERROR(!(disp = XOpenDisplay(nullptr)), "Can't open X-Display.");
+
 	scr   = XDefaultScreen(disp);
 	root  = DefaultRootWindow(disp);
 	comp  = value;

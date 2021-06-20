@@ -110,7 +110,8 @@ struct sddr_struct {
 
 struct input {
 	std::string ip = "", pass = "pass", cmd = "rat",
-				events = "tcp",  screen = "tcp";
+				events = "tcp", screen = "tcp",
+				display = "", 	xauth  = "";
 	bool secure = false, dvert = false;
 	uint8_t comp = 16;
 	int port = 0;

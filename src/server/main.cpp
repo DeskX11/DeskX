@@ -57,6 +57,9 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	Tools::SetDisplay(Global::args.display);
+	Tools::SetXAuth(Global::args.xauth);
+
 	Global::net = new TCP(Global::args.port);
 	assert(Global::net);
 
