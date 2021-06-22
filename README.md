@@ -80,7 +80,6 @@ Options:
 Commands:
 	exit			Command to shutdown the server side
 	rat 			Start remote control
-	screenshot		Get a picture of the server desktop
 
 Example:
 	./dxс --ip=192.168.0.1 --port=4431 --password=secret --compression=16
