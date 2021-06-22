@@ -88,13 +88,21 @@ Example:
 ### Server
 ```
 Usage: ./dxs [options]
-Options (all options are required):
+Options:
 	--port			Connection port
 	--password		Verification secret word without spaces
+	--display		Screen number (:0)
+	--xauth			Path to .Xauthority file
+	--palette		Path to palette file (default: ./palette.deskx)
+	--cmd			Command (default: rat)
+
+Commands:
+	palette			Palette Generation Mode
+	rat 			Start remote control
+	all			Launching the two previous modes at once
 
 Example:
-	./dxs --port=4431 --password=secret
-
+	./dxs --cmd=all --port=4431 --password=secret
 ```
 
 ## How to get best performance?
