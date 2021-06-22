@@ -1,5 +1,7 @@
 
 #include "../../include/Server.h"
+
+bool Actions::work = true;
 /**
  *	Header data transfer function. The package includes screen
  *	resolution and color table.
@@ -9,14 +11,13 @@ bool Actions::SendHeaders(uint8_t compression) {
 	byte res[size];
 	uint32_t width, height;
 
-	Global::x11 = new X11(compression);
-	assert(Global::x11);
+	Global::x11->Start(compression);
 
 	Global::x11->GetResolution(width, height);
 	memcpy(res + U32S, &height, U32S);
 	memcpy(res, &width, U32S);
 
-	res[U32S * 2] = Global::x11->LinksTable(res + U32S * 2 + 1);
+	res[U32S * 2] = Global::x11->PackLinks(res + U32S * 2 + 1);
 	return Global::net->Send(res, size);
 }
 /**
@@ -46,7 +47,7 @@ bool Actions::ProtsSync(uint16_t &port1, uint16_t &port2) {
  *	color blocks in the packet.
  */
 void Actions::ScreenUDP(uint16_t port) {
-	UDP net(port, Global::args.ip);
+	UDP net(&Actions::work, port, Global::args.ip);
 	byte buff[net.Size()], *ptr;
 	std::vector<pix> pixlist;
 	uint64_t tmp, size;
@@ -54,7 +55,7 @@ void Actions::ScreenUDP(uint16_t port) {
 
 	uint16_t *num = (uint16_t *)buff;
 
-	for (;;) {
+	while (Actions::work) {
 		Global::x11->Vector(pixlist);
 
 		ptr = buff + U16S;
@@ -81,6 +82,8 @@ void Actions::ScreenUDP(uint16_t port) {
 		BREAK_IF(!net.SendV(buff));
 		pixlist.clear();
 	}
+
+	Actions::work = false;
 }
 /**
  *	Screen data transmission function via TCP protocol. All data
@@ -97,7 +100,7 @@ void Actions::ScreenTCP(void) {
 	uint32_t *num = (uint32_t *)buff;
 	assert(buff);
 
-	for (;;) {
+	while (Actions::work) {
 		Global::x11->Vector(pixlist);
 		ptr = buff + U32S;
 		*num = 0;
@@ -117,6 +120,7 @@ void Actions::ScreenTCP(void) {
 		pixlist.clear();
 	}
 
+	Actions::work = false;
 	delete[] buff;
 }
 /**
@@ -124,11 +128,11 @@ void Actions::ScreenTCP(void) {
  *	protocol. Runs in a separate thread.
  */
 void Actions::EventsUDP(uint16_t port) {
-	UDP net(port);
+	UDP net(&Actions::work, port);
 	byte buff[net.Size()], *ptr = buff + 1 + U16S * 2;
 	uint16_t x, y;
 
-	for (;;) {
+	while (Actions::work) {
 		BREAK_IF(!net.RecvV(buff));
 
 		memcpy(&y, buff + 1 + U16S, U16S);
@@ -139,6 +143,8 @@ void Actions::EventsUDP(uint16_t port) {
 			Global::x11->NewEvents(ptr, *buff);
 		}
 	}
+
+	Actions::work = false;
 }
 /**
  *	Function of receiving keyboard and mouse events via TCP
@@ -149,7 +155,7 @@ void Actions::EventsTCP(uint16_t port) {
 	uint16_t x, y, len;
 	uint8_t  esize;
 
-	for (;;) {
+	while (Actions::work) {
 		BREAK_IF(!Global::net->Recv(buff, 1));
 		len = U16S * 2 + (esize = *buff) * 2;
 
@@ -163,12 +169,16 @@ void Actions::EventsTCP(uint16_t port) {
 			Global::x11->NewEvents(ptr, esize);
 		}
 	}
+
+	Actions::work = false;
 }
 /**
  *	Remote control start.
  */
 void Actions::StartStream(uint8_t compression, bool screen, bool events) {
 	uint16_t port1, port2;
+
+	Actions::work = true;
 
 	RET_IF_VOID(!Actions::SendHeaders(compression));
 	RET_IF_VOID(!Actions::ProtsSync(port1,  port2));
@@ -183,8 +193,4 @@ void Actions::StartStream(uint8_t compression, bool screen, bool events) {
 	if (thr.joinable()) {
 		thr.join();
 	}
-}
-
-void Actions::ScreenShot(uint8_t compression, bool screen) {
-
 }

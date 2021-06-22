@@ -1,5 +1,7 @@
 
 #include "../../include/Client.h"
+
+bool Actions::work = true;
 /**
  *	Authorization function. Password hash and compression level
  *	are sent
@@ -89,7 +91,7 @@ void Actions::ScreenTCP(void) {
  *	Screen data transmission function via UDP protocol.
  */
 void Actions::ScreenUDP(uint16_t port) {
-	UDP net(port);
+	UDP net(&Actions::work, port);
 	byte pack[net.Size()];
 
 	for (;;) {
@@ -104,7 +106,7 @@ void Actions::ScreenUDP(uint16_t port) {
  *	protocol. Runs in a separate thread.
  */
 void Actions::EventsUDP(uint16_t port) {
-	UDP net(port, Global::args.ip);
+	UDP net(&Actions::work, port, Global::args.ip);
 	byte pack[net.Size()], *buff = pack + 1;
 
 	for (;;) {
@@ -157,8 +159,4 @@ void Actions::StartStreaming(byte *request) {
 	}
 
 	delete Global::x11;
-}
-
-void Actions::ScreenShot(byte *request) {
-	/* Later */
 }

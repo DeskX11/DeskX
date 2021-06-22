@@ -4,6 +4,8 @@
 
 class Actions {
 private:
+	static bool work;
+
 	static bool ProtsSync(uint16_t &, uint16_t &);
 	static bool SendHeaders(uint8_t);
 
@@ -14,7 +16,6 @@ private:
 
 public:
 	static void StartStream(uint8_t, bool, bool);
-	static void ScreenShot(uint8_t, bool);
 };
 
 #endif

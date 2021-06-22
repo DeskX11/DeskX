@@ -1,7 +1,7 @@
 
 #include "../../include/DeskX.h"
 
-UDP::UDP(int port, std::string ip) {
+UDP::UDP(bool *flag, int port, std::string ip) {
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	ERROR(sock < 0, "Can't create new UDP socket.");
 
@@ -14,6 +14,7 @@ UDP::UDP(int port, std::string ip) {
 	RecvTimeout(0, true);
 
 	sender = !ip.empty();
+	w = flag;
 	
 	if (!sender) {
 		bool status = bind(sock, own.ptr, SDDR_SIZE) == 0;
@@ -31,7 +32,9 @@ UDP::UDP(int port, std::string ip) {
 
 void UDP::RecvTimeout(long msec, bool slower) {
 	tout.tv_usec = (tout.tv_usec + msec) / 2;
-	tout.tv_sec += (slower) ? 1 : 0;
+	if (slower) {
+		tout.tv_sec += (tout.tv_sec > 3) ? 0 : 1;
+	}
 
 	RET_IF_VOID(pid != 0 && !slower);
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, toptr, TV_SIZE);
@@ -72,7 +75,7 @@ int UDP::SendV(byte *buff) {
 	uint32_t *out = reinterpret_cast<uint32_t *>(back);
 	*out = 0;
 
-	for (uint8_t atts = 0; atts < UDP_ATTEMPTS; atts++) {
+	for (uint8_t atts = 0; atts < UDP_ATTEMPTS && *w; atts++) {
 		if (atts > 3) {
 			RecvTimeout(0, true);
 		}
@@ -99,7 +102,7 @@ int UDP::RecvV(byte *buff) {
 
 	ClearBuffer();
 
-	for (; atts < UDP_ATTEMPTS; atts++) {
+	for (; atts < UDP_ATTEMPTS && *w; atts++) {
 		if (atts > 3) {
 			RecvTimeout(0, true);
 		}

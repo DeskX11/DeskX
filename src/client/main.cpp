@@ -33,13 +33,7 @@ int main(int argc, char *argv[]) {
 		 */
 		*request = 2;
 		Global::net->Send(request, AUTH_SIZE);
-		break;
 
-	case 's':
-		/**
-		 *	Server screenshot capture mode
-		 */
-		Actions::ScreenShot(request);
 	default: break;
 	}
 

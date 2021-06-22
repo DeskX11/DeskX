@@ -61,7 +61,8 @@ input Tools::ArgsRead(int argc, char **argv) {
 		{"--screen=",		12},
 		{"--disable-vert",	14},
 		{"--xauth=",		12},
-		{"--display=",		12}
+		{"--display=",		12},
+		{"--palette=",		12}
 	};
 
 	auto cmp = [&](arg &a, char *str, char **p) {
@@ -120,6 +121,10 @@ input Tools::ArgsRead(int argc, char **argv) {
 
 		else if (cmp(l[10], argv[i], &ptr)) {
 			retval.display = std::string(ptr);
+		}
+
+		else if (cmp(l[11], argv[i], &ptr)) {
+			retval.path = std::string(ptr);
 		}
 	}
 

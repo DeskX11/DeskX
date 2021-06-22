@@ -8,7 +8,8 @@ The project was created for its own use within the home local network (you can u
 ## Functionality (not fully implemented)
 
 - Selection of the range of the difference between adjacent pixels to ensure compression (from 0 to 255).
-- Multiple Commands: Server Side Shutdown, Remote Control, Take Screenshot.
+- Multiple Commands: Server Side Shutdown, Remote Control.
+- Ability to create a palette of colors.
 - Ability to set an authorization password.
 - There is a choice of data transfer protocol (TCP or UDP).
 - Full screen or windowed mode.
@@ -44,7 +45,7 @@ After these steps 2 files will be compiled: `dxc` (the client part, which must b
 
 ## How to get best performance?
 
-Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. To reduce transmission latency, you can try changing the data transfer protocol for both screen and events (according to my observations, the best option is `--screen=TCP` and `--events=UDP`). Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN. As a last resort, you can also try to disable unnecessary effects such as window shadows.
+Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--compression` parameter up. It also helps to reduce the size of the package by creating a color picker that captures the desktop background and interface elements. To create a palette on the server side, you need to run dxs with `--cmd=palette`. To reduce transmission latency, you can try changing the data transfer protocol for both screen and events (according to my observations, the best option is `--screen=TCP` and `--events=UDP`). Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN. As a last resort, you can also try to disable unnecessary effects such as window shadows.
 
 ## How to get the best picture quality?
 
@@ -53,16 +54,14 @@ You should take into account that the better the picture quality, the larger the
 ## Can't open X-Display.
 
 This error usually occurs when you try to start `dxs` via ssh. To solve it, you need to specify the `--display` and `--xauth` arguments.
-* --xauth - path to `.Xauthority` file.
-* --display - display number, default value should be `:0` or `:0.0`.
+* xauth - path to `.Xauthority` file.
+* display - display number, default value should be `:0` or `:0.0`.
 
 For more information you can read xauth, Xsecurity and xhost man pages.
 
 ## Upcoming updates
 
-- Fixing a bug with reconnecting to the server (TCP).
-- Fix disconnect bug with long palette generation.
-- Stable bin files & .deb packs.
+- Sorted links table.
 - Server side as a daemon.
 - GUI part of the program.
 

@@ -35,7 +35,9 @@ dxs
 
 .DS_Store
 .oldcode
+*.deskx
 *.zip
 
+# Debian packages
 deb/deskx-*
 *.deb

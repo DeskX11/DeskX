@@ -84,23 +84,27 @@ private:
 	Display *disp = nullptr;
 	XWindowAttributes attrs;
 	XShmSegmentInfo shm;
+	uint8_t comp = 0;
 	byte *prevb, *nextb, maxval;
 	size_t maxpix;
-	uint8_t comp;
 	Window root;
 	XImage *img;
 	int scr;
 
+	void DestroyBuffer(void);
 	void LinkColor(pix &);
 
 public:
+	size_t Size(void) { return maxpix * COLOR_BLOCK; }
 	void GetResolution(uint32_t &, uint32_t &);
 	void NewEvents(byte *, uint8_t);
 	void MouseXY(uint16_t, uint16_t);
 	void Vector(std::vector<pix> &);
-	uint8_t LinksTable(byte *);
-	size_t Size(void) { return maxpix * COLOR_BLOCK; }
-	X11(uint8_t);
+	void MakeLinksTable(void);
+	uint8_t PackLinks(byte *);
+	void SetLinks(byte *, uint8_t);
+	void Start(uint8_t);
+	X11();
 	~X11(void);
 };
 

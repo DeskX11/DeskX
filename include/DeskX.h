@@ -18,9 +18,11 @@
 #include <sys/time.h>
 #include <functional>
 #include <algorithm>
+#include <fstream>
 #include <numeric>
 #include <unistd.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <cstring>
 #include <string>
 #include <thread>
@@ -111,7 +113,8 @@ struct sddr_struct {
 struct input {
 	std::string ip = "", pass = "pass", cmd = "rat",
 				events = "tcp", screen = "tcp",
-				display = "", 	xauth  = "";
+				display = "", 	xauth  = "",
+				path = "./palette.deskx";
 	bool secure = false, dvert = false;
 	uint8_t comp = 16;
 	int port = 0;

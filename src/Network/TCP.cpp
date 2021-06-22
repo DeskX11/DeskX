@@ -69,8 +69,8 @@ bool TCP::Send(byte *buff, uint32_t size) {
 
 	RET_IF(sock == -1, false);
 
-	while ((len = send(sock, buff + step, size, 0)) != size) {
-		RET_IF(len < 0, false);
+	while ((len = send(sock, buff + step, size, MSG_NOSIGNAL)) != size) {
+		RET_IF(len < 1, false);
 		size -= len;
 		step += len;
 	}

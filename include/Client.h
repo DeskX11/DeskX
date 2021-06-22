@@ -20,8 +20,7 @@ inline std::string man_text("\033[1mDeskX\033[0m - Program for remote control "
 "	--cmd			Server side command (default: rat)\n\n"
 "Commands:\n"
 "	exit			Command to shutdown the server side\n"
-"	rat 			Start remote control\n"
-"	screenshot		Get a picture of the server desktop\n\n"
+"	rat 			Start remote control\n\n"
 "Example:\n"
 "	./dxс --ip=192.168.0.1 --port=4431 --password=secret --compression=16\n");
 

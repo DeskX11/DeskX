@@ -12,7 +12,7 @@ class UDP {
 private:
 	int sock, packlim, userlim;
 	sddr_struct own, out;
-	bool sender = false;
+	bool sender = false, *w;
 	timeval tout = {0, 0};
 	byte *pack, *back;
 	uint8_t pid = 0;
@@ -25,7 +25,7 @@ private:
 	int Recv(byte *, int);
 
 public:
-	UDP(int, std::string ip = "");
+	UDP(bool *, int, std::string ip = "");
 	int Size(void) { return userlim; }
 	int SendV(byte *);
 	int RecvV(byte *);

@@ -1,16 +1,20 @@
 
 #include "../../include/Server.h"
 
-X11::X11(uint8_t value) {
+X11::X11(void) {
 	XInitThreads();
 
 	ERROR(!(disp = XOpenDisplay(nullptr)), "Can't open X-Display.");
+	root = DefaultRootWindow(disp);
+	scr  = XDefaultScreen(disp);
+	shm.shmaddr = nullptr;
+}
 
-	scr   = XDefaultScreen(disp);
-	root  = DefaultRootWindow(disp);
-	comp  = value;
+void X11::Start(uint8_t value) {
 	XGetWindowAttributes(disp, root, &attrs);
 	int depth = DefaultDepth(disp, scr);
+
+	DestroyBuffer();
 
 	img = XShmCreateImage(disp, DefaultVisual(disp, 0), depth, ZPixmap,
 						  nullptr, &shm, attrs.width, attrs.height   );
@@ -32,6 +36,7 @@ X11::X11(uint8_t value) {
 	assert(prevb && nextb);
 
 	maxval = Global::args.dvert ? 0xFE : 0xFD;
+	comp   = value;
 }
 
 void X11::MouseXY(uint16_t x, uint16_t y) {
@@ -93,7 +98,7 @@ void X11::Vector(std::vector<pix> &arr) {
 	auto cmp = [&](void) {
 		return abs(orig[0] - one.r)
 			 + abs(orig[1] - one.g)
-			 + abs(orig[2] - one.b) < comp;
+			 + abs(orig[2] - one.b) <= comp;
 	};
 
 	auto inl = [&](void) {
@@ -189,7 +194,7 @@ void X11::Vector(std::vector<pix> &arr) {
  *	of colors must not exceed 256 colors, so that the color
  *	link does not exceed 1 byte.
  */
-uint8_t X11::LinksTable(byte *links_table) {
+void X11::MakeLinksTable(void) {
 	std::map<uint32_t, size_t>::iterator it1, it2;
 	std::vector<pix> list;
 
@@ -219,22 +224,40 @@ uint8_t X11::LinksTable(byte *links_table) {
 
 		links.erase(it2);
 	}
+}
 
+void X11::SetLinks(byte *ptr, uint8_t size) {
+	uint32_t buff;
+
+	for (uint8_t i = 0; i < size; i++) {
+		memcpy(&buff, ptr + i * U32S,   U32S);
+		links.insert(std::make_pair(buff, 1));
+	}
+}
+
+uint8_t X11::PackLinks(byte *buff) {
 	for (auto &p : links) {
-		memcpy(links_table, &p.first, U32S);
-		links_table += U32S;
+		memcpy(buff, &p.first, U32S);
+		buff += U32S;
 	}
 
 	return static_cast<uint8_t>(links.size());
 }
 
-X11::~X11(void) {
+void X11::DestroyBuffer(void) {
+	RET_IF_VOID(!nextb);
+
 	XShmDetach(disp, &shm);
 	XDestroyImage(img);
 	shmdt(shm.shmaddr);
-	XTestGrabControl(disp, false);
-	XCloseDisplay(disp);
+	firstsend = false;
 
 	delete[] nextb;
 	delete[] prevb;
+}
+
+X11::~X11(void) {
+	DestroyBuffer();
+	XTestGrabControl(disp, false);
+	XCloseDisplay(disp);
 }
