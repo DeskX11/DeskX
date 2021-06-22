@@ -22,13 +22,11 @@ script_filename="$(basename $0)"
 project_location="./.."
 client_filename='dxc'
 server_filename='dxs'
-deskx_version='0.2'
+deskx_version='1.0'
 package_version='1'
 fhs="usr/bin"
 package_filename="deskx-${1:-}_${deskx_version}-${package_version}_amd64"
 build_directory="${script_location}/${package_filename}"
-
-echo "$package_filename"
 
 # stop if the script is run from the wrong directory
 [[ ! -f "${script_location}/${script_filename}" ]] &&
@@ -54,14 +52,14 @@ dpkg -s make 1>/dev/null
 
 function clean_build_directory()
 {
-    rm -rf "${script_location}/"deskx-*
+    rm -rf "${script_location}/"deskx-{client,server}_*
 }
 
 # create build folder and compile required binary
 clean_build_directory
 cd "$project_location"
 make "$1"
-mkdir -pv "${build_directory}/"{DEBIAN,$fhs}
+mkdir -p "${build_directory}/"{DEBIAN,$fhs}
 cd "$script_location"
 
 # manifest declaration
@@ -84,12 +82,12 @@ EOF
 
 # compile package
 [[ "$1" = 'client' ]] &&
-    mv -v "${project_location}/${client_filename}" "${build_directory}/${fhs}/" &&
+    mv "${project_location}/${client_filename}" "${build_directory}/${fhs}/" &&
     dpkg-deb --build --root-owner-group ${package_filename} &&
     mv "${package_filename}.deb" "$project_location"
 
 [[ "$1" = 'server' ]] &&
-    mv -v "${project_location}/${server_filename}" "${build_directory}/${fhs}/" &&
+    mv "${project_location}/${server_filename}" "${build_directory}/${fhs}/" &&
     dpkg-deb --build --root-owner-group ${package_filename} &&
     mv "${package_filename}.deb" "$project_location"
 

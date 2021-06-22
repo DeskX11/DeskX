@@ -1,24 +1,27 @@
 <p align="center"><img height="120px" src="./info/logo.png"></p>
 <h4 align="center">DeskX - Remote control program</h4>
+<p align="center"><a align="center" href="https://github.com/DeskX11/DeskX/actions/workflows/build.yml"><img align="center" src="https://github.com/DeskX11/DeskX/actions/workflows/build.yml/badge.svg"></a></p>
 
-## About project and reasons for creation
+## About
 
-The project was created for its own use within the home local network (you can use DeskX over the internet using port forwarding via ssh, with such a connection you only need to use the TCP protocol). I have a server at home with a large number of Linux virtual machines to which I needed remote access. All similar remote control programs I tried lagged in the process (banal scrolling in the browser or dragging windows). For this reason, a project was created that focuses on the fastest possible data transfer over the local network. The project works on all operating systems with X11. [Leave your review :)](https://github.com/DeskX11/DeskX/discussions/4)
+The project was created for its own use within the home local network (you can use DeskX over the internet using port forwarding via ssh, with such a connection you only need to use the TCP protocol). I have a server at home with a large number of Linux virtual machines to which I needed remote access. All remote software I've tried had their problems - e.g., scrolling in the browser, dragging windows, etc. For this reason, a project was created that focuses on the fastest possible data transfer over the local network. The project works on all operating systems with X11.
 
-## Functionality (not fully implemented)
+[You can leave your opinion - I am happy to get any feedback ;)](https://github.com/DeskX11/DeskX/discussions/4)
 
-- Selection of the range of the difference between adjacent pixels to ensure compression (from 0 to 255).
-- Multiple Commands: Server Side Shutdown, Remote Control.
-- Ability to create a palette of colors.
-- Ability to set an authorization password.
-- There is a choice of data transfer protocol (TCP or UDP).
-- Full screen or windowed mode.
-- Two separate streams for transferring screen data and events.
+## Functionality
+
+* Selection of the range of the difference between adjacent pixels to ensure compression (from 0 to 255)
+* Multiple Commands: Server Side Shutdown, Remote Control
+* Ability to create a palette of colors
+* Ability to set an authorization password
+* There is a choice of data transfer protocol (TCP or UDP)
+* Fullscreen or windowed mode
+* Two separate streams for transferring screen data and events
 
 ## An example of working with compression
 
 <p align="center"><img src="./info/example.png"></p>
-Video example of how the program works (compression parameter is 16, protocol for events and screen is TCP, gigabit LAN is used): https://youtu.be/pDRSAVssPek
+<a href="https://youtu.be/pDRSAVssPek">Video example<a> of how the program works (compression parameter is 16, protocol for events and screen is TCP, gigabit LAN is used)
 
 ## Compression algorithm
 
@@ -28,20 +31,71 @@ The first step is to generate a hash table of colors that are most often found o
 
 Controlling screen resolution and picture sizes is entirely dependent on the server-side resolution settings. To change it, use the standard utility xrandr.
 
-## Window or Full screen mode
+## Window or Fullscreen mode
 
-Full screen mode is enabled when your screen resolution matches the server side screen resolution. Press the `F7` key to exit full screen mode.
+Fullscreen mode is enabled when your screen resolution matches the server side screen resolution. Press the `F7` key to exit fullscreen mode.
 
-## Get started
-
+## Getting started
+* Build it
 ```bash
-sudo apt install libx11-dev libxtst-dev libssl-dev
+# Debian/Ubuntu
+sudo apt install libx11-dev libxtst-dev libssl-dev libxext-dev
 git clone https://github.com/DeskX11/DeskX/
 cd DeskX
-make client # To compile the client side
-make server # To compile the server side
+make client
+make server
+# After these steps 2 files will be compiled: `dxc` (the client part, which must be launched on the
+# computer from which the control will be carried out) and `dxs` (server part for a managed computer).
 ```
-After these steps 2 files will be compiled: `dxc` (the client part, which must be launched on the computer from which the control will be carried out) and `dxs` (server part for a managed computer). To get an example of how exactly you need to start the client and server parts - just run the programs without arguments `./dxc` or `./dxs`.
+
+* Build the .deb packages
+```bash
+# Debian/Ubuntu
+sudo apt install libx11-dev libxtst-dev libssl-dev libxext-dev
+git clone https://github.com/DeskX11/DeskX/
+cd DeskX
+make deb-client
+make deb-server
+# After that, you will have the client and server .deb packages in the project's root folder.
+```
+
+* Or you can download packages from the <a href="https://github.com/DeskX11/DeskX/releases">Release section</a>
+
+* Also, there is an <a href="https://aur.archlinux.org/packages/deskx-git/">AUR repository</a> for Arch Linux users (Thanks to joserebelo!)
+
+## Usage
+### Client
+```
+Usage: ./dxс [options]
+Options:
+	--ip			Ip address of the server
+	--port			Port of the server
+	--password		Verification secret word without spaces
+	--compression		Compression range (0 to 255)
+	--events		Protocol for events, TCP or UDP (default: TCP)
+	--screen		Protocol for screen, TCP or UDP (default: TCP)
+	--disable-vert		Disable vertical compression.
+	--cmd			Server side command (default: rat)
+
+Commands:
+	exit			Command to shutdown the server side
+	rat 			Start remote control
+	screenshot		Get a picture of the server desktop
+
+Example:
+	./dxс --ip=192.168.0.1 --port=4431 --password=secret --compression=16
+```
+### Server
+```
+Usage: ./dxs [options]
+Options (all options are required):
+	--port			Connection port
+	--password		Verification secret word without spaces
+
+Example:
+	./dxs --port=4431 --password=secret
+
+```
 
 ## How to get best performance?
 
@@ -61,12 +115,16 @@ For more information you can read xauth, Xsecurity and xhost man pages.
 
 ## Upcoming updates
 
-- Sorted links table.
-- Server side as a daemon.
-- GUI part of the program.
+* Usage section
+* Sorted links table
+* Server side as a daemon
+* Configuration file
+* GUI part of the program
+* Store meta information for auto-builders in the project's root folder
+* Man-pages (en/ru)
 
 ## Requirements
 
-- OS with x11
-- `g++ make`
-- `libx11-dev libxtst-dev libssl-dev libxext-dev`
+* OS with x11
+* `g++ make`
+* `libx11-dev libxtst-dev libssl-dev libxext-dev`
