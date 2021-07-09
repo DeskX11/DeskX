@@ -112,6 +112,10 @@ Fast data transfer depends on two factors: the size of the transmitted packet an
 
 You should take into account that the better the picture quality, the larger the packet size, and this will increase the delay. This moment will always be a compromise between quality and speed. To improve the quality of the picture, you can decrease the value of the parameter `--compression`. Also, to reduce distortion associated with shadow windows and other visual nuances, run the program with the `--disable-vert` parameter.
 
+## Why is the palette parameter needed?
+
+When you run the program in palette mode, a file is created that stores the 255 most popular colors on your screen so that the compressor can later refer to these colors and not transmit them over the network. Since the process of generating the palette takes some time, it was decided to render it in a separate mode. For comfortable work, first run the program with `--cmd=palette` and the program will generate a palette file. Then you can run the program with `--cmd=rat` and remotely access the connection without delay. By running the program with `--cmd=all`, you will first wait for the palette to be generated and only after that you will be able to connect to the server.
+
 ## Can't open X-Display.
 
 This error usually occurs when you try to start `dxs` via ssh. To solve it, you need to specify the `--display` and `--xauth` arguments.

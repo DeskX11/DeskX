@@ -133,8 +133,9 @@ input Tools::ArgsRead(int argc, char **argv) {
 
 void Tools::SetDisplay(std::string arg) {
 	if (arg.empty()) {
-		arg = std::string(getenv("DISPLAY"));
-		ERROR(arg.empty(), "Argument 'display' was not set.");
+		char *env = getenv("DISPLAY");
+		ERROR(!env, "Argument 'display' was not set.");
+		arg = std::string(env);
 	}
 
 	std::string cmd = std::string("DISPLAY=") + arg;
@@ -143,8 +144,9 @@ void Tools::SetDisplay(std::string arg) {
 
 void Tools::SetXAuth(std::string arg) {
 	if (arg.empty()) {
-		arg = std::string(getenv("XAUTHORITY"));
-		ERROR(arg.empty(), "Argument 'xauth' was not set.");
+		char *env = getenv("XAUTHORITY");
+		ERROR(!env, "Argument 'xauth' was not set.");
+		arg = std::string(env);
 	}
 
 	std::string cmd = std::string("XAUTHORITY=") + arg;
