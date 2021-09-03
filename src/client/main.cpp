@@ -1,9 +1,26 @@
 
 #include "../../include/Client.h"
 
+int processIsTranslated() {
+   int ret = 0;
+   size_t size = sizeof(ret);
+   if (sysctlbyname("sysctl.proc_translated", &ret, &size, NULL, 0) == -1) 
+   {
+      if (errno == ENOENT)
+         return 0;
+      return -1;
+   }
+   return ret;
+}
+
 int main(int argc, char *argv[]) {
 	Global::args = Tools::ArgsRead(argc, argv);
 	byte request[AUTH_SIZE];
+	
+	// disable work on apple silicon
+	if (processIsTranslated() == 1) {
+		return 1;
+	}
 
 	if (Global::args.ip.empty() || Global::args.port < 1) {
 		std::cout << man_text << "\n";
