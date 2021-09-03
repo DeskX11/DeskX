@@ -65,11 +65,14 @@ bool TCP::Recv(byte *buff, uint32_t size) {
 
 bool TCP::Send(byte *buff, uint32_t size) {
 	int sock = (sender) ? sock1 : sock2;
-	int step = 0, len;
+	int step = 0, len, flag = 0;
 
 	RET_IF(sock == -1, false);
+#ifndef __APPLE__
+	flag = MSG_NOSIGNAL;
+#endif
 
-	while ((len = send(sock, buff + step, size, MSG_NOSIGNAL)) != size) {
+	while ((len = send(sock, buff + step, size, flag)) != size) {
 		RET_IF(len < 1, false);
 		size -= len;
 		step += len;

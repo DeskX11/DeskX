@@ -13,7 +13,7 @@ private:
 	static void EventsUDP(uint16_t);
 	static void EventsTCP(uint16_t);
 	static void ScreenUDP(uint16_t);
-	static void ScreenTCP(void);
+	static void ScreenTCP(uint16_t);
 
 public:
 	static void StartStreaming(byte *);

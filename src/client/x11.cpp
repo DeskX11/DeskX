@@ -48,7 +48,7 @@ Window X11::NewWindow(int width, int height, bool full) {
 
 	Window w = XCreateSimpleWindow(disp, RootWindow(disp, scr), 0, 0,
 								   width, height, 1, black, white  );
-	XStoreName(disp, w, "DeskX - Remote control in a local network");
+	XStoreName(disp, w, "DeskX - Remote control");
 	if (full) {
 		FullScreen(w);
 	}
@@ -169,7 +169,8 @@ uint8_t X11::GetEvents(byte *buff) {
 	*x = (rx < 0) ? 0 : rx;
 	*y = (ry < 0) ? 0 : ry;
 
-	uint8_t value, type, size = 0;
+	uint8_t  type, size = 0;
+	uint32_t value;
 	XEvent event;
 	buff += U16S * 2;
 
@@ -206,8 +207,9 @@ uint8_t X11::GetEvents(byte *buff) {
 			exit(1);
 		}
 
-		buff[size * 2 + 1] = value;
-		buff[size * 2] = type;
+		mask = size * KEY_BLOCK;
+		memcpy(buff + 1 + mask, &value, U32S);
+		buff[mask] = type;
 		size++;
 
 		BREAK_IF(size > 10);

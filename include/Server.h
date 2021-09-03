@@ -12,7 +12,6 @@ inline std::string man_text("\033[1mDeskX\033[0m - Program for remote "
 "Usage: ./dxs [options]\n"
 "Options:\n"
 "	--port			Connection port\n"
-"	--password		Verification secret word without spaces\n"
 "	--display		Screen number (:0)\n"
 "	--xauth			Path to .Xauthority file\n"
 "	--palette		Path to palette file (default: ./palette.deskx)\n"
@@ -22,7 +21,7 @@ inline std::string man_text("\033[1mDeskX\033[0m - Program for remote "
 "	rat 			Start remote control\n"
 "	all			Launching the two previous modes at once\n\n"
 "Example:\n"
-"	./dxs --cmd=all --port=4431 --password=secret\n");
+"	./dxs --cmd=all --port=4431\n");
 
 namespace Global {
 	inline TCP		*net;

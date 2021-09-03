@@ -2,15 +2,19 @@
 #ifndef _DESKX_MAIN_H_
 #define _DESKX_MAIN_H_
 
+#include <netinet/ip.h>
+#include <netinet/udp.h>
+#include <netinet/tcp.h>
+#ifdef __APPLE__
+#define iphdr ip
+#include <SDL2/SDL.h>
+#else
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/XTest.h>
-#include <netinet/ip.h>
-#include <netinet/udp.h>
-#include <netinet/tcp.h>
-#include <openssl/md5.h>
+#endif
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <iostream>
@@ -26,6 +30,7 @@
 #include <cstring>
 #include <string>
 #include <thread>
+#include <vector>
 #include <ctime>
 #include <map>
 /**
@@ -83,18 +88,23 @@ constexpr size_t VERT_BLOCK		= 2;
  *
  *	AUTH_SIZE:
  *		1. Mode
- *		2. Password (MD5)
- *		3. Difference between pixels
- *		4. Screen protocol
- *		5. Events protocol
- *		6. Vertical compression
+ *		2. Difference between pixels
+ *		3. Screen protocol
+ *		4. Events protocol
+ *		5. Vertical compression
+ *		6. X11/SDL events
  *
  *	TABLE_SIZE:
  *		1. Number of items per table
  *		2. Table elements
+ *
+ *	KEY_BLOCK:
+ *		1. Event type
+ *		2. Key id
  */
-constexpr size_t AUTH_SIZE	= 5 + MD5_DIGEST_LENGTH;
+constexpr size_t AUTH_SIZE	= 6;
 constexpr size_t TABLE_SIZE	= U32S * 255 + 1;
+constexpr size_t KEY_BLOCK = 1 + U32S;
 /**
  *	Declaration of used structures.
  */
@@ -111,10 +121,8 @@ struct sddr_struct {
 };
 
 struct input {
-	std::string ip = "", pass = "pass", cmd = "rat",
-				events = "tcp", screen = "tcp",
-				display = "", 	xauth  = "",
-				path = "./palette.deskx";
+	std::string ip = "", cmd = "rat", events = "tcp", screen = "tcp",
+				display = "", xauth  = "", path = "./palette.deskx";
 	bool secure = false, dvert = false;
 	uint8_t comp = 16;
 	int port = 0;

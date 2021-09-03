@@ -6,12 +6,12 @@ bool Actions::work = true;
  *	Header data transfer function. The package includes screen
  *	resolution and color table.
  */
-bool Actions::SendHeaders(uint8_t compression) {
+bool Actions::SendHeaders(uint8_t compression, bool sdl) {
 	constexpr size_t size = U32S * 2 + TABLE_SIZE;
 	byte res[size];
 	uint32_t width, height;
 
-	Global::x11->Start(compression);
+	Global::x11->Start(compression, sdl);
 
 	Global::x11->GetResolution(width, height);
 	memcpy(res + U32S, &height, U32S);
@@ -157,7 +157,7 @@ void Actions::EventsTCP(uint16_t port) {
 
 	while (Actions::work) {
 		BREAK_IF(!Global::net->Recv(buff, 1));
-		len = U16S * 2 + (esize = *buff) * 2;
+		len = U16S * 2 + (esize = *buff) * KEY_BLOCK;
 
 		BREAK_IF(!Global::net->Recv(buff, len));
 
@@ -175,13 +175,14 @@ void Actions::EventsTCP(uint16_t port) {
 /**
  *	Remote control start.
  */
-void Actions::StartStream(uint8_t compression, bool screen, bool events) {
+void Actions::StartStream(uint8_t compression, bool screen, bool events,
+						  bool sdl) {
 	uint16_t port1, port2;
 
 	Actions::work = true;
 
-	RET_IF_VOID(!Actions::SendHeaders(compression));
-	RET_IF_VOID(!Actions::ProtsSync(port1,  port2));
+	RET_IF_VOID(!Actions::SendHeaders(compression, sdl));
+	RET_IF_VOID(!Actions::ProtsSync(port1, port2));
 
 	if (!screen) {
 		Global::net->BufferSize(Global::x11->Size());

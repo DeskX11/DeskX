@@ -10,7 +10,7 @@ X11::X11(void) {
 	shm.shmaddr = nullptr;
 }
 
-void X11::Start(uint8_t value) {
+void X11::Start(uint8_t value, bool sdl) {
 	XGetWindowAttributes(disp, root, &attrs);
 	int depth = DefaultDepth(disp, scr);
 
@@ -37,6 +37,7 @@ void X11::Start(uint8_t value) {
 
 	maxval = Global::args.dvert ? 0xFE : 0xFD;
 	comp   = value;
+	sdlevs = sdl;
 }
 
 void X11::MouseXY(uint16_t x, uint16_t y) {
@@ -52,31 +53,36 @@ void X11::NewEvents(byte *buff, uint8_t len) {
 	uint8_t number = (len > 4) ? 4 : len;
 
 	for (uint8_t i = 0; i < number; i++) {
-		uint16_t shift = i * 2;
+		size_t step = i * KEY_BLOCK;
 		bool flag = true;
 
-		switch (buff[i * 2]) {
+		uint32_t *key = (uint32_t *)&buff[step + 1];
+
+		switch (buff[step]) {
 		// mouse events
 		case 0:
 			flag = false;
 		case 1:
-			XTestFakeButtonEvent(disp, buff[shift + 1], flag, 0);
+			XTestFakeButtonEvent(disp, *key, flag, 0);
 			continue;
 		// keyboard events
 		case 2:
 			flag = false;
 		case 3:
-			XTestFakeKeyEvent(disp, buff[shift + 1], flag, 0);
+			if (sdlevs) {
+				*key = XKeysymToKeycode(disp, *key);
+			}
+			XTestFakeKeyEvent(disp, *key, flag, 0);
 		// incorrect event
 		default: continue;
-		}	
+		}
 	}
 }
 
 void X11::LinkColor(pix &pixel) {
-	std::map<uint32_t, size_t>::iterator it;
+	auto it = std::lower_bound(links.begin(), links.end(), pixel.u32());
 
-	if ((it = links.find(pixel.u32())) != links.end()) {
+	if (it != links.end() && pixel.u32() == *it) {
 		pixel.link_id = std::distance(links.begin(), it);
 		pixel.link = true;
 	}
@@ -196,33 +202,48 @@ void X11::Vector(std::vector<pix> &arr) {
  */
 void X11::MakeLinksTable(void) {
 	std::map<uint32_t, size_t>::iterator it1, it2;
+	std::map<uint32_t, size_t> mp;
 	std::vector<pix> list;
+	uint32_t prev, next;
 
 	Vector(list);
 	firstsend = false;
+	prev = 0;
 
 	for (auto &p : list) {
-		it2 = links.end();
+		it2 = mp.end();
 
-		if ((it1 = links.find(p.u32())) != it2) {
+		if ((it1 = mp.find(p.u32())) != it2) {
 			it1->second++;
 			continue;
 		}
 
-		links.insert(std::make_pair(p.u32(), 1));
+		mp.insert(std::make_pair(p.u32(), 1));
 	}
 
-	while (links.size() > 0xFF) {
-		it1 = links.begin();
-		it2 = links.begin();
+	while (mp.size() > 0xFF) {
+		it1 = mp.begin();
+		it2 = mp.begin();
 
-		for ( ; it1 != links.end(); it1++) {
+		for (; it1 != mp.end(); it1++) {
 			if (it1->second < it2->second) {
 				it2 = it1;
 			}
 		}
 
-		links.erase(it2);
+		mp.erase(it2);
+	}
+
+	for (auto &g : mp) {
+		next = g.first;
+
+		for (auto &p : mp) {
+			NEXT_IF(next <= p.first);
+			NEXT_IF(prev >= p.first);
+			next = p.first;
+		}
+
+		links.push_back(prev = next);
 	}
 }
 
@@ -230,14 +251,14 @@ void X11::SetLinks(byte *ptr, uint8_t size) {
 	uint32_t buff;
 
 	for (uint8_t i = 0; i < size; i++) {
-		memcpy(&buff, ptr + i * U32S,   U32S);
-		links.insert(std::make_pair(buff, 1));
+		memcpy(&buff, ptr + i * U32S, U32S);
+		links.push_back(buff);
 	}
 }
 
 uint8_t X11::PackLinks(byte *buff) {
 	for (auto &p : links) {
-		memcpy(buff, &p.first, U32S);
+		memcpy(buff, &p, U32S);
 		buff += U32S;
 	}
 

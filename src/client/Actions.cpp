@@ -11,18 +11,18 @@ void Actions::Authorization(byte *req, bool screen, bool events,
 	byte res, pscr = screen ? 1 : 0, pevt = events ? 1 : 0;
 	bool status;
 
-	req[MD5_DIGEST_LENGTH + 1] = Global::args.comp;
-	req[MD5_DIGEST_LENGTH + 2] = pscr;
-	req[MD5_DIGEST_LENGTH + 3] = pevt;
-	req[MD5_DIGEST_LENGTH + 4] = Global::args.dvert ? 0 : 1;
 	req[0] = mod;
+	req[1] = Global::args.comp;
+	req[2] = pscr;
+	req[3] = pevt;
+	req[4] = Global::args.dvert ? 0 : 1;
+	req[5] = 0;
+#ifdef __APPLE__
+	req[5] = 1;
+#endif
 
 	status = Global::net->Send(req, AUTH_SIZE);
 	ERROR(!status, "Unable to send authorization package.");
-
-	status = Global::net->Recv(&res, 1);
-	ERROR(!status, "Unable to get server response.");
-	ERROR(res != 0, "Incorrect password or generated packet.");
 }
 /**
  *	Header data receiving function. The package includes screen
@@ -34,16 +34,18 @@ void Actions::GetHeaders(void) {
 
 	bool s1 = Global::net->Recv((byte *)&width,  U32S);
 	bool s2 = Global::net->Recv((byte *)&height, U32S);
-
 	ERROR(!s1 || !s2, "Unable to get server's resolution.");
 
-	Global::x11 = new X11(width, height);
-	assert(Global::x11);
+#ifdef __APPLE__
+	assert(Global::scr = new SDL(width, height));
+#else
+	assert(Global::scr = new X11(width, height));
+#endif
 
 	s1 = Global::net->Recv(headers, TABLE_SIZE);
 	ERROR(!s1, "Unable to get color reference table.");
 
-	Global::x11->AddLinks(*headers, headers + 1);
+	Global::scr->AddLinks(*headers, headers + 1);
 }
 /**
  *	Synchronization of two ports.
@@ -69,10 +71,10 @@ void Actions::ProtsSync(uint16_t &port1, uint16_t &port2) {
 /**
  *	Screen data transmission function via TCP protocol.
  */
-void Actions::ScreenTCP(void) {
+void Actions::ScreenTCP(uint16_t port) {
 	uint32_t size;
 
-	byte *pack = new byte[Global::x11->Size()];
+	byte *pack = new byte[Global::scr->Size()];
 	byte *sptr = (byte *)&size;
 	assert(pack);
 
@@ -81,7 +83,7 @@ void Actions::ScreenTCP(void) {
 		BREAK_IF(size < COLOR_BLOCK);
 
 		BREAK_IF(!Global::net->Recv(pack, size));
-		Global::x11->Set(pack, size);
+		Global::scr->Set(pack, size);
 	}
 
 	delete[] pack;
@@ -96,7 +98,7 @@ void Actions::ScreenUDP(uint16_t port) {
 
 	for (;;) {
 		BREAK_IF(!net.RecvV(pack));
-		Global::x11->Set(pack);
+		Global::scr->Set(pack);
 	}
 
 	ERROR(true, "Server stopped sending frames.");
@@ -110,7 +112,7 @@ void Actions::EventsUDP(uint16_t port) {
 	byte pack[net.Size()], *buff = pack + 1;
 
 	for (;;) {
-		*pack = Global::x11->GetEvents(buff);
+		*pack = Global::scr->GetEvents(buff);
 		BREAK_IF(!net.SendV(pack));
 	}
 
@@ -126,8 +128,8 @@ void Actions::EventsTCP(uint16_t port) {
 	size_t len;
 
 	for (;;) {
-		*pack = Global::x11->GetEvents(buff);
-		len = *pack * 2 + size;
+		*pack = Global::scr->GetEvents(buff);
+		len = *pack * KEY_BLOCK + size;
 
 		BREAK_IF(!Global::net->Send(pack, len));
 	}
@@ -146,17 +148,21 @@ void Actions::StartStreaming(byte *request) {
 	Actions::GetHeaders();
 	Actions::ProtsSync(port1, port2);
 
-	Global::x11->ScreenProtocol(screen);
+	Global::scr->ScreenProtocol(screen);
 	if (!screen) {
-		Global::net->BufferSize(Global::x11->Size());
+		Global::net->BufferSize(Global::scr->Size());
 	}
-
+/*
 	std::thread thr((events) ? Actions::EventsUDP
 							 : Actions::EventsTCP, port2);
-	(screen) ? Actions::ScreenUDP(port1) : Actions::ScreenTCP();
+	(screen) ? Actions::ScreenUDP(port1) : Actions::ScreenTCP();*/
+	std::thread thr((screen) ? Actions::ScreenUDP
+							 : Actions::ScreenTCP, port1);
+	(events) ? Actions::EventsUDP(port2) : Actions::EventsTCP(port2);
+
 	if (thr.joinable()) {
 		thr.join();
 	}
 
-	delete Global::x11;
+	delete Global::scr;
 }

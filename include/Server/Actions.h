@@ -7,7 +7,7 @@ private:
 	static bool work;
 
 	static bool ProtsSync(uint16_t &, uint16_t &);
-	static bool SendHeaders(uint8_t);
+	static bool SendHeaders(uint8_t, bool);
 
 	static void ScreenUDP(uint16_t);
 	static void EventsUDP(uint16_t);
@@ -15,7 +15,7 @@ private:
 	static void ScreenTCP(void);
 
 public:
-	static void StartStream(uint8_t, bool, bool);
+	static void StartStream(uint8_t, bool, bool, bool);
 };
 
 #endif

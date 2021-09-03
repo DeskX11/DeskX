@@ -1,6 +1,7 @@
 
 #include "../include/DeskX.h"
 
+#ifndef __APPLE__
 void Tools::SharedMem(XShmSegmentInfo &shm, char **ptr, int length) {
 	shm.shmid = shmget(IPC_PRIVATE, length * 2, IPC_CREAT | 0777);
 	assert(shm.shmid > 0);
@@ -12,6 +13,7 @@ void Tools::SharedMem(XShmSegmentInfo &shm, char **ptr, int length) {
 
 	shmctl(shm.shmid, IPC_RMID, 0);
 }
+#endif
 
 uint16_t Tools::FreePort(uint16_t start) {
 	int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -50,9 +52,8 @@ input Tools::ArgsRead(int argc, char **argv) {
 		std::string inp; int min;
 	};
 
-	std::vector<arg> l = {
+	std::vector<arg> args = {
 		{"--compression=",	15},
-		{"--password=",		12},
 		{"--encryption",	12},
 		{"--port=",			 8},
 		{"--cmd=",			 9},
@@ -79,51 +80,47 @@ input Tools::ArgsRead(int argc, char **argv) {
 	char *ptr;
 
 	for (int i = 1; i < argc; i++) {
-		if (cmp(l[0], argv[i], &ptr)) {
+		if (cmp(args[0], argv[i], &ptr)) {
 			retval.comp = (uint8_t)atoi(ptr);
 		}
 
-		else if (cmp(l[1], argv[i], &ptr)) {
-			retval.pass = std::string(ptr);
-		}
-
-		else if (cmp(l[2], argv[i], &ptr)) {
+		else if (cmp(args[1], argv[i], &ptr)) {
 			retval.secure = true;
 		}
 
-		else if (cmp(l[3], argv[i], &ptr)) {
+		else if (cmp(args[2], argv[i], &ptr)) {
 			retval.port = atoi(ptr);
 		}
 
-		else if (cmp(l[4], argv[i], &ptr)) {
+		else if (cmp(args[3], argv[i], &ptr)) {
 			retval.cmd = std::string(ptr);
 		}
 
-		else if (cmp(l[5], argv[i], &ptr)) {
+		else if (cmp(args[4], argv[i], &ptr)) {
 			retval.ip = std::string(ptr);
 		}
 
-		else if (cmp(l[6], argv[i], &ptr)) {
+		else if (cmp(args[5], argv[i], &ptr)) {
 			retval.events = std::string(ptr);
 		}
 
-		else if (cmp(l[7], argv[i], &ptr)) {
+		else if (cmp(args[6], argv[i], &ptr)) {
 			retval.screen = std::string(ptr);
 		}
 
-		else if (cmp(l[8], argv[i], &ptr)) {
+		else if (cmp(args[7], argv[i], &ptr)) {
 			retval.dvert = true;
 		}
 
-		else if (cmp(l[9], argv[i], &ptr)) {
+		else if (cmp(args[8], argv[i], &ptr)) {
 			retval.xauth = std::string(ptr);
 		}
 
-		else if (cmp(l[10], argv[i], &ptr)) {
+		else if (cmp(args[9], argv[i], &ptr)) {
 			retval.display = std::string(ptr);
 		}
 
-		else if (cmp(l[11], argv[i], &ptr)) {
+		else if (cmp(args[10], argv[i], &ptr)) {
 			retval.path = std::string(ptr);
 		}
 	}

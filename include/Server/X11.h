@@ -79,8 +79,8 @@ struct pix {
 
 class X11 {
 private:
-	bool firstsend = false;
-	std::map<uint32_t, size_t> links;
+	bool firstsend = false, sdlevs;
+	std::vector<uint32_t> links;
 	Display *disp = nullptr;
 	XWindowAttributes attrs;
 	XShmSegmentInfo shm;
@@ -103,7 +103,7 @@ public:
 	void MakeLinksTable(void);
 	uint8_t PackLinks(byte *);
 	void SetLinks(byte *, uint8_t);
-	void Start(uint8_t);
+	void Start(uint8_t, bool);
 	X11();
 	~X11(void);
 };

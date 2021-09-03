@@ -1,34 +1,24 @@
 
 #include "../../include/Server.h"
 
-void Processing(byte *hash) {
-	byte req[AUTH_SIZE], res = 0;
-
-	if (!Global::net->Recv(req, AUTH_SIZE)) {
-		res = 1;
-	}
-	if (res == 0) {
-		int cmp = memcmp(hash, req + 1, MD5_DIGEST_LENGTH);
-		res = (cmp == 0) ? ((*req < 3) ? 0 : 3) : 2;
-	}
-
-	RET_IF_VOID(!Global::net->Send(&res, 1) || res != 0);
+void Processing(void) {
+	byte req[AUTH_SIZE];
+	RET_IF_VOID(!Global::net->Recv(req, AUTH_SIZE));
 	Global::args.ip = Global::net->GetIp();
 	/**
 	 *	Protocols for screen and for events
 	 */
-	bool screen = req[MD5_DIGEST_LENGTH + 2] == 1;
-	bool events = req[MD5_DIGEST_LENGTH + 3] == 1;
-
-	Global::args.dvert = req[MD5_DIGEST_LENGTH + 4] == 0;
+	bool screen = req[2] == 1;
+	bool events = req[3] == 1;
+	bool sdlevs = req[5] == 1;
+	Global::args.dvert = req[4] == 0;
 
 	switch (*req) {
 	case 0:
 		/**
 		 *	Remote control mode
 		 */
-		Actions::StartStream(req[MD5_DIGEST_LENGTH + 1],
-							 screen, events);
+		Actions::StartStream(req[1], screen, events, sdlevs);
 		return;
 
 	default:
@@ -48,7 +38,7 @@ void PaletteGenerating(void) {
 	std::cout << "Info: It may take a couple of minutes to generate "
 			  << "the palette, please wait.\n";
 
-	Global::x11->Start(0);
+	Global::x11->Start(0,  false);
 	Global::x11->MakeLinksTable();
 	size = (byte)Global::x11->PackLinks(buff);
 
@@ -97,7 +87,6 @@ void ReadPalette(void) {
 
 int main(int argc, char *argv[]) {
 	Global::args = Tools::ArgsRead(argc, argv);
-	byte hash[MD5_DIGEST_LENGTH];
 
 	Tools::SetDisplay(Global::args.display);
 	Tools::SetXAuth(Global::args.xauth);
@@ -115,23 +104,20 @@ int main(int argc, char *argv[]) {
 		ReadPalette();
 	}
 
-	if (Global::args.port < 1 || Global::args.pass.empty()) {
+	if (Global::args.port < 1) {
 		std::cout << man_text << "\n";
 		return 1;
 	}
 
 	Global::net = new TCP(Global::args.port);
 	assert(Global::net);
-
-	byte *pass = (byte *)Global::args.pass.c_str();
-	MD5(pass, Global::args.pass.length(), hash);
 	/**
 	 *	Cycle for processing connections to the server. Only 1
 	 *	client connects!
 	 */
 	while (Global::net->Alive()) {
 		NEXT_IF(!Global::net->Accept());
-		Processing(hash);
+		Processing();
 
 		Global::net->CloseConnection();
 	}

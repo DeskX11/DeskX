@@ -41,7 +41,6 @@ command -v dpkg-deb 1>/dev/null ||
     (echo "Can't find dpkg-deb"; exit 1)
 dpkg -s libx11-dev 1>/dev/null
 dpkg -s libxtst-dev 1>/dev/null
-dpkg -s libssl-dev 1>/dev/null
 dpkg -s libxext-dev 1>/dev/null
 dpkg -s g++ 1>/dev/null
 dpkg -s make 1>/dev/null
@@ -75,7 +74,6 @@ Description: performance-oriented remote ${1} for a local network
  the Internet without an encrypted tunnel).
 Depends: libx11-dev,
          libxtst-dev,
-         libssl-dev,
          libxext-dev
 
 EOF
