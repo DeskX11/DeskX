@@ -3,20 +3,14 @@
 #define _DESKX_CLIENT_ACTIONS_H_
 
 class Actions {
-private:
-	static bool work;
-
-	static void ProtsSync(uint16_t &, uint16_t &);
-	static void Authorization(byte *, bool, bool, uint8_t);
-	static void GetHeaders(void);
-
-	static void EventsUDP(uint16_t);
-	static void EventsTCP(uint16_t);
-	static void ScreenUDP(uint16_t);
-	static void ScreenTCP(uint16_t);
+protected:
+	static void events(void);
+	static void screen(void);
 
 public:
-	static void StartStreaming(byte *);
+	static uint8_t sync(void);
+	static void start(void);
+
 };
 
 #endif

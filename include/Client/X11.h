@@ -2,33 +2,25 @@
 #ifndef _DESKX_CLIENT_X11_H_
 #define _DESKX_CLIENT_X11_H_
 
-#define EXIT_KEY (uint8_t)73 // F7
+#include "../DeskX.h"
 
 class X11 {
-private:
-	std::vector<uint32_t> links;
+protected:
+	size_t height, width, tcpbuff;
 	Display *disp = nullptr;
-	int scr;
-	size_t height, width, max, scrshift = 0;
 	XShmSegmentInfo shm;
-	uint32_t linksnum = 0;
 	Window win;
 	XImage *img;
 	GC gc;
+	int scr;
 
-	uint8_t size1, size2, size3, size4, size5;
-
-	Window NewWindow(int, int, bool);
-	void FullScreen(Window &);
+	Window newWindow(int, int, bool);
 
 public:
-	void Set(byte *, uint32_t len = 0);
-	uint8_t GetEvents(byte *);
-	void SetLinks(byte *, uint32_t);
-	void AddLinks(uint8_t, byte *);
-	X11(uint32_t, uint32_t);
-	size_t Size(void) { return max; }
-	void ScreenProtocol(bool);
+	size_t bufferTCP(void);
+	void screen(uint64_t, byte *);
+	Events events(void);
+	X11(void);
 	~X11(void);
 };
 

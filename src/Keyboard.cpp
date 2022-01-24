@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <X11/Xlib.h>

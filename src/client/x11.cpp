@@ -1,38 +1,36 @@
 
 #include "../../include/Client.h"
 
-void X11::FullScreen(Window &nwindow) {
-	Atom atoms[2] = { XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", false), None };
-	XChangeProperty(disp, nwindow, XInternAtom(disp, "_NET_WM_STATE", false),
-					XA_ATOM, 32, PropModeReplace, (const unsigned char *)atoms, 1);
-}
-
-X11::X11(uint32_t in_width, uint32_t in_height) {
+X11::X11(void) {
 	XInitThreads();
 
-	disp = XOpenDisplay(nullptr);
-	scr  = XDefaultScreen(disp);
+	width  = Client::args.get().mode.width;
+	height = Client::args.get().mode.height;
+	disp   = XOpenDisplay(nullptr);
+	scr    = XDefaultScreen(disp);
+	int depth = DefaultDepth(disp, scr);
 
 	unsigned scr_width  = (unsigned)DisplayWidth (disp, scr);
 	unsigned scr_height = (unsigned)DisplayHeight(disp, scr);
-	height = in_height;
-	width  = in_width;
 
-	ERROR(width > scr_width || height > scr_height,
-		  "Server screen resolution is greater than client resolution.");
+	std::stringstream ss;
+	ss << "Server screen resolution is greater than client resolution";
+	ss << " (" << width << "x" << height << ")";
+	ERR(scr_width < width || scr_height < height, ss.str());
+	ERR(depth != 24, "The color depth on your computer is not 24 bits");
 
 	bool fullsize = width == scr_width && scr_height == height;
-	win = NewWindow(width, height, fullsize);
+	win = newWindow(width, height, fullsize);
 	gc  = XCreateGC(disp, win, 0, nullptr);
 
 	img = XShmCreateImage(disp, DefaultVisual(disp, 0),
-						  DefaultDepth(disp, scr), ZPixmap, nullptr,
+						  depth, ZPixmap, nullptr,
 						  &shm, width, height);
 	assert(img);
 
-	max = width * height * 4;
+	tcpbuff = width * height * 4;
 
-	Tools::SharedMem(shm, &img->data, max);
+	sharedMem(shm, &img->data, tcpbuff);
 	XShmAttach(disp, &shm);
 	XSync(disp, false);
 
@@ -42,7 +40,7 @@ X11::X11(uint32_t in_width, uint32_t in_height) {
 	XFlush(disp);
 }
 
-Window X11::NewWindow(int width, int height, bool full) {
+Window X11::newWindow(int width, int height, bool full) {
 	int black = BlackPixel(disp, scr);
 	int white = WhitePixel(disp, scr);
 
@@ -50,172 +48,89 @@ Window X11::NewWindow(int width, int height, bool full) {
 								   width, height, 1, black, white  );
 	XStoreName(disp, w, "DeskX - Remote control");
 	if (full) {
-		FullScreen(w);
+		Atom atoms[2] = { XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", false), None };
+		XChangeProperty(disp, w, XInternAtom(disp, "_NET_WM_STATE", false),
+						XA_ATOM, 32, PropModeReplace, (const unsigned char *)atoms, 1);
 	}
-    XMapWindow(disp, w);
 
+    XMapWindow(disp, w);
 	return w;
 }
 
-void X11::AddLinks(uint8_t size, byte *buff) {
-	uint32_t link = 0;
-	size_t shift;
+void X11::screen(uint64_t size, byte *blocks) {
+	byte *orig = (byte *)img->data;
+	Codec::Block pix;
+	Codec::Axis axis;
+	Codec::Type type;
+	Codec::RGB  prev;
+	uint16_t x = 0, y = 0;
+	uint8_t step;
 
-	linksnum = size;
+	while (size) {
+		type = Codec::is(blocks);
+		step = (type == Codec::Type::AXIS) ? axis.decode(blocks)
+										   :  pix.decode(blocks, prev);
+		blocks += step;
+		size   -= step;
 
-	for (uint32_t i = 0; i < linksnum; i++) {
-		shift = i * U32S;
-		memcpy(&link, buff + shift, U32S);
-		links.push_back(link);
-	}
-}
-
-void X11::ScreenProtocol(bool udp = false) {
-	size1 = (udp) ? 1 : LINKED_BLOCK;
-	size2 = (udp) ? 1 : EQUAL_BLOCK;
-	size3 = (udp) ? 1 : COLOR_BLOCK;
-	size4 = (udp) ? 1 : INSIDE_BLOCK;
-	size5 = (udp) ? 1 : VERT_BLOCK;
-}
-
-void X11::Set(byte *ptr, uint32_t input) {
-	uint32_t skip, len;
-	uint8_t number;
-	byte *pixs, *orig = (byte *)img->data;
-
-	if (input == 0) {
-		len  = *((uint16_t *)ptr);
-		ptr += U16S;
-	}
-	else {
-		scrshift = 0;
-		len = input;
-	}
-
-	while (len != 0) {
-		/**
-		 *	Linked blocks
-		 */
-		if ((number = *ptr) == 0) {
-			number = ptr[1];
-			RET_IF_VOID(ptr[2] > linksnum);
-			pixs = ((byte *)&links[ptr[2]]) + 1;
-			ptr += LINKED_BLOCK;
-			len -= size1;
+		if (type == Codec::Type::BLOCK) {
+			pix.write(orig, width, x, y);
+			prev = pix.rgb24();
 		}
-		/**
-		 *	Equal blocks
-		 */
-		else if (number == 0xFF && ptr[1] == 0x00) {
-			memcpy(&skip, ptr + 2, U32S);
-			scrshift += skip * 4;
-			ptr += EQUAL_BLOCK;
-			len -= size2;
-			number = 0;
-		}
-		/**
-		 *	Link to previous color
-		 */
-		else if (number == 0xFF) {
-			number = ptr[1];
-			ptr += INSIDE_BLOCK;
-			len -= size4;
-			pixs = orig + scrshift - 4;
-		}
-		/**
-		 *	Color reference above horizontally
-		 */
-		else if (!Global::args.dvert && number == 0xFE) {
-			number = ptr[1];
-			ptr += VERT_BLOCK;
-			len -= size5;
-			pixs = orig + scrshift - width * 4;
-		}
-		/**
-		 *	Compressed blocks
-		 */
 		else {
-			pixs = ptr + 1;
-			ptr += COLOR_BLOCK;
-			len -= size3;
-		}
-
-		BREAK_IF(scrshift >= max);
-
-		for (uint8_t i = 0; i < number; i++) {
-			img->data[scrshift]		= pixs[0];
-			img->data[scrshift + 1] = pixs[1];
-			img->data[scrshift + 2] = pixs[2];
-			scrshift += 4;
+			uint16_t &tmp = axis.type() == Codec::AxisType::X ? x : y;
+			tmp += axis.value();
 		}
 	}
 
-	if (scrshift >= max || input != 0) {
-		XShmPutImage(disp, win, gc, img, 0, 0, 0,
-					 0, width, height, false   );
-		XSync(disp, false);
-		scrshift = 0;
-	}
+	XShmPutImage(disp, win, gc, img, 0, 0, 0, 0, width, height, false);
+	XSync(disp, false);
 }
 
-uint8_t X11::GetEvents(byte *buff) {
-	uint16_t *y = reinterpret_cast<uint16_t *>(buff + U16S);
-	uint16_t *x = reinterpret_cast<uint16_t *>(buff);
+Events X11::events(void) {
 	unsigned int mask;
-	int rx, ry;
-	Window r;
-
-	XQueryPointer(disp, win, &r, &r, &rx, &ry, &rx, &ry, &mask);
-	*x = (rx < 0) ? 0 : rx;
-	*y = (ry < 0) ? 0 : ry;
-
-	uint8_t  type, size = 0;
-	uint32_t value;
 	XEvent event;
-	buff += U16S * 2;
+	Events list;
+	Window r;
+	int x, y;
+	bool stop = false;
+
+	XQueryPointer(disp, win, &r, &r, &x, &y, &x, &y, &mask);
+	list.getX() = std::max(x, 0);
+	list.getY() = std::max(y, 0);
 
 	while (XPending(disp)) {
 		XNextEvent(disp, &event);
-		type = 0;
+		bool flag = false;
 
 		switch (event.type) {
-		/**
-		 *	Mouse events
-		 */
 		case ButtonPress:
-			type = 1;
+			flag = true;
 		case ButtonRelease:
-			value = event.xbutton.button;
-			type = (type != 0) ? type : 0;
-			break;
-		/**
-		 *	Keyboard events
-		 */
-		case KeyPress:
-			type = 3;
-		case KeyRelease:
-			value = event.xkey.keycode;
-			type = (type != 0) ? type : 2;
+			list.add(event.xbutton.button, flag ? MOUSE_DOWN
+											    : MOUSE_UP);
 			break;
 
-		default: continue;
+		case KeyPress:
+			flag = true;
+		case KeyRelease:
+			list.add(event.xkey.keycode, flag ? KEY_DOWN
+											  : KEY_UP);
+			stop = event.xkey.keycode == _EXIT_KEY;
+		default:
+			break;
 		}
-		/**
-		 *	If exit key is pressed
-		 */
-		if (value == EXIT_KEY && type > 1) {
+
+		if (stop) {
 			exit(1);
 		}
-
-		mask = size * KEY_BLOCK;
-		memcpy(buff + 1 + mask, &value, U32S);
-		buff[mask] = type;
-		size++;
-
-		BREAK_IF(size > 10);
 	}
 
-	return size;
+	return list;
+}
+
+size_t X11::bufferTCP(void) {
+	return tcpbuff;
 }
 
 X11::~X11(void) {

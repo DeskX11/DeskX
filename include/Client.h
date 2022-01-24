@@ -1,40 +1,36 @@
 
-#ifndef _DESKX_CLIENT_
-#define _DESKX_CLIENT_
+#ifndef _DESKX_CLIENT_H_
+#define _DESKX_CLIENT_H_
 
 #include "DeskX.h"
-#include "Client/Actions.h"
-
-#ifdef __APPLE__
-#include "Client/SDL.h"
+#include "client/Actions.h"
+#if defined(__APPLE__) || defined(_WIN32)
+#include "client/SDL.h"
+#define _EXIT_KEY SDL_SCANCODE_F7
 #else
-#include "Client/X11.h"
+#include "client/X11.h"
+#define _EXIT_KEY (uint8_t)73
 #endif
 
-inline std::string man_text("\033[1mDeskX\033[0m - Program for remote control "
-"of a computer in a local network. Client side.\nGitHub: https://github.com/DeskX11/DeskX\n\n"
-"Usage: ./dxс [options]\n"
+inline std::string readme(Consts::logo + "Usage: ./dxс [options]\n"
 "Options:\n"
 "	--ip			Ip address of the server\n"
 "	--port			Port of the server\n"
-"	--compression		Compression range (0 to 255)\n"
-"	--events		Protocol for events, TCP or UDP (default: TCP)\n"
-"	--screen		Protocol for screen, TCP or UDP (default: TCP)\n"
-"	--disable-vert		Disable vertical compression.\n"
-"	--cmd			Server side command (default: rat)\n\n"
+"	--color-distance	Compression range (0 to 255) (default: 2)\n"
+"	--cmd			Server side command (default: 0)\n\n"
 "Commands:\n"
-"	exit			Command to shutdown the server side\n"
-"	rat 			Start remote control\n\n"
+"	rat (0) 		Start remote control\n"
+"	exit(1)			Command to shutdown the server side\n\n"
 "Example:\n"
-"	./dxс --ip=192.168.0.1 --port=4431 --compression=16\n");
+"	./dxс --ip=192.168.0.1 --port=4431 --color-distance=16 --cmd=0\n");
 
-namespace Global {
-	inline TCP		*net;
-	inline input	args;
-#ifdef __APPLE__
-	inline SDL		*scr;
+namespace Client {
+	inline Args args;
+	inline Net tcp;
+#if defined(__APPLE__) || defined(_WIN32)
+	inline SDL *scr = nullptr;
 #else
-	inline X11		*scr;
+	inline X11 *scr = nullptr;
 #endif
 }
 

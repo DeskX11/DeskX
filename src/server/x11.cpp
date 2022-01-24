@@ -4,25 +4,25 @@
 X11::X11(void) {
 	XInitThreads();
 
-	ERROR(!(disp = XOpenDisplay(nullptr)), "Can't open X-Display.");
+	ERR(!(disp = XOpenDisplay(nullptr)), "Can't open X-Display.");
 	root = DefaultRootWindow(disp);
 	scr  = XDefaultScreen(disp);
 	shm.shmaddr = nullptr;
+	XGetWindowAttributes(disp, root, &attrs);
+
+	maxpix = attrs.width * attrs.height;
 }
 
-void X11::Start(uint8_t value, bool sdl) {
-	XGetWindowAttributes(disp, root, &attrs);
+void X11::start(void) {
 	int depth = DefaultDepth(disp, scr);
-
-	DestroyBuffer();
+	assert(depth == 24);
+	destroyBuffers();
 
 	img = XShmCreateImage(disp, DefaultVisual(disp, 0), depth, ZPixmap,
 						  nullptr, &shm, attrs.width, attrs.height   );
 	assert(img);
 
-	maxpix = attrs.width * attrs.height;
-	Tools::SharedMem(shm, &img->data, maxpix * 4);
-
+	sharedMem(shm, &img->data, maxpix * Consts::rgba);
 	XShmAttach(disp, &shm);
 	XSync(disp, true);
 	XTestGrabControl(disp, true);
@@ -31,254 +31,184 @@ void X11::Start(uint8_t value, bool sdl) {
 	 *	other will be compared with the current one. Further,
 	 *	the pointers are swapped.
 	 */
-	nextb = new byte[attrs.width * attrs.height * 4];
-	prevb = new byte[attrs.width * attrs.height * 4];
+	size_t buff_size = maxpix * Consts::rgba + Consts::rgba;
+
+	nextb = new byte[buff_size];
+	prevb = new byte[buff_size];
 	assert(prevb && nextb);
-
-	maxval = Global::args.dvert ? 0xFE : 0xFD;
-	comp   = value;
-	sdlevs = sdl;
 }
 
-void X11::MouseXY(uint16_t x, uint16_t y) {
+size_t X11::bufferTCP(void) {
+	return maxpix * 4;
+}
+
+void X11::resolution(uint16_t &x, uint16_t &y) {
+	x = attrs.width;
+	y = attrs.height;
+}
+
+void X11::events(Events &list) {
+	int x = std::min((int)list.getX(), attrs.width  - 1);
+	int y = std::min((int)list.getY(), attrs.height - 1);
 	XTestFakeMotionEvent(disp, 0, x, y, 0);
-}
 
-void X11::GetResolution(uint32_t &width, uint32_t &height) {
-	width  = attrs.width;
-	height = attrs.height;
-}
-
-void X11::NewEvents(byte *buff, uint8_t len) {
-	uint8_t number = (len > 4) ? 4 : len;
-
-	for (uint8_t i = 0; i < number; i++) {
-		size_t step = i * KEY_BLOCK;
-		bool flag = true;
-
-		uint32_t *key = (uint32_t *)&buff[step + 1];
-
-		switch (buff[step]) {
-		// mouse events
-		case 0:
-			flag = false;
-		case 1:
-			XTestFakeButtonEvent(disp, *key, flag, 0);
-			continue;
-		// keyboard events
-		case 2:
-			flag = false;
-		case 3:
-			if (sdlevs) {
-				*key = XKeysymToKeycode(disp, *key);
-			}
-			XTestFakeKeyEvent(disp, *key, flag, 0);
-		// incorrect event
-		default: continue;
+	for (int i = 0; i < list.size(); i++) {
+		if (Server::args.get().mode.sdl && list[i].second > MOUSE_DOWN) {
+			list[i].first = XKeysymToKeycode(disp, list[i].first);
 		}
+		(list[i].second > MOUSE_DOWN) ? XTestFakeKeyEvent(disp, list[i].first, list[i].second % 2 != 0, 0)
+								   : XTestFakeButtonEvent(disp, list[i].first, list[i].second % 2 != 0, 0);
 	}
 }
 
-void X11::LinkColor(pix &pixel) {
-	auto it = std::lower_bound(links.begin(), links.end(), pixel.u32());
-
-	if (it != links.end() && pixel.u32() == *it) {
-		pixel.link_id = std::distance(links.begin(), it);
-		pixel.link = true;
-	}
-}
-
-void X11::Vector(std::vector<pix> &arr) {
-	uint32_t size = maxpix;
-	pix one;
-
+uint64_t X11::screen(byte *buff) {
 	XShmGetImage(disp, root, img, 0, 0, AllPlanes);
 	byte *orig = (byte *)img->data;
 	byte *prev = prevb;
 	byte *next = nextb;
 
+	uint64_t &size  = *reinterpret_cast<uint64_t *>(buff);
+	uint64_t passed = 0;
+
+	Codec::Block rgb(orig);
+	Codec::Axis axis;
+	Codec::RGB color;
+
+	uint8_t hdist = Server::args.get().mode.hdistance;
+	uint8_t ret;
+	uint16_t x, y;
+
+	buff += Consts::u64;
+	size = 0;
+
 	auto eq = [](byte *first, byte *second) {
 		return memcmp(first, second, 3) == 0;
 	};
 
-	auto cmp = [&](void) {
-		return abs(orig[0] - one.r)
-			 + abs(orig[1] - one.g)
-			 + abs(orig[2] - one.b) <= comp;
+	auto over = [&](void) {
+		return passed >= maxpix;
 	};
 
-	auto inl = [&](void) {
-		RET_IF(arr.empty(), false);
-		/**
-		 *	If the eq flag is on, we are looking for the
-		 *	screen segment that was before the current
-		 *	block, otherwise we compare it with the color
-		 *	of the previous block.
-		 */
-		one.linkp = (!arr.back().eq) ? arr.back() == one
-				  : eq(orig - (one.num+1) * 4, orig - 4);
-		return one.linkp;
+	auto go_next = [&](void) {
+		memcpy(next, orig, 3);
+
+		next += Consts::rgba;
+		prev += Consts::rgba;
+		orig += Consts::rgba;
+		passed++;
 	};
 
-	auto vrl = [&](void) {
-		RET_IF(size + one.num + attrs.width > maxpix
-			   || Global::args.dvert, false);
-		/**
-		 *	Checking the color of the screen segment on
-		 *	top of the current block. If the colors are
-		 *	the same - refer to this color.
-		 */
-		byte *p1 = orig - (one.num + attrs.width) * 4;
-		byte *p2 = orig - one.num * 4;
-		return one.vert = eq(p1, p2);
-	};
+	auto toplink = [&](void) {
+		byte *top = orig - (attrs.width + rgb.repeat()) * Consts::rgba;
+		ret = 0;
 
-	/**
-	 *	Defines the segments of the screen that have not
-	 *	changed from the previous frame.
-	 */
-	auto eqlseg = [&](void) {
-		RET_IF_VOID(!firstsend);
-		one.eqn = 0;
-
-		while (eq(orig, prev) && size > 0) {
-			memcpy(next, orig, 3);
-
-			one.eqn++;
-			one.eq = true;
-			size--;
-
-			orig += 4;
-			next += 4;
-			prev += 4;
+		if (rgb.equal(top, hdist)) {
+			rgb.type() = Codec::BlockType::TOP;
+			ret = rgb.encode(buff);
+			color = rgb.rgb14();
+			buff += ret;
+			size += ret;
 		}
 
-		if (one.eqn != 0) {
-			arr.push_back(one);
+		return ret;
+	};
+
+	auto leftlink = [&](void) {
+		byte *left = orig - 2 * Consts::rgba;
+		ret = 0;
+
+		if (rgb.equal(left, hdist)) {
+			rgb.type() = Codec::BlockType::LEFT;
+			ret = rgb.encode(buff);
+			color = rgb.rgb14();
+			buff += ret;
+			size += ret;
+		}
+
+		return ret;
+	};
+
+	auto block_fn = [&](void) {
+		RETVOID_IF(over());
+		rgb = Codec::Block(orig);
+
+		while (rgb.equal(orig, hdist) && rgb.repeat() < 0xFD) {
+			go_next();
+			rgb.repeat()++;
+			BREAK_IF(over());
+		}
+
+		if (rgb.repeat() == 1 && passed > 3) {
+			RETVOID_IF(leftlink());
+		}
+		if (rgb.repeat() == 1 && passed > attrs.width) {
+			RETVOID_IF(toplink());
+		}
+
+		if (rgb.repeat()) {
+			rgb.type() = Codec::BlockType::LINE;
+			ret = (color != rgb.rgb14()) ? rgb.encode(buff)
+										 :   rgb.same(buff);
+			color = rgb.rgb14();
+			buff += ret;
+			size += ret;
 		}
 	};
-	/**
-	 *	Defines equal pixels based on a custom parameter.
-	 *	If the color was in the hash table, set the flag.
-	 */
-	auto cmpseg = [&](void) {
-		one.set(orig);
-		while (cmp() && one.num < maxval && size > 0) {
-			memcpy(next, orig, 3);
-			one.num++;
-			size--;
 
-			orig += 4;
-			next += 4;
-			prev += 4;
+	while (!over()) {
+		uint64_t step = 0;
+
+		while (!firststart && !over() && eq(orig, prev)) {
+			go_next();
+			step++;
 		}
 
-		if (one.num != 0) {
-			/**
-			 *	Trying to reference some existing screen
-			 *	color.
-			 */
-			if (firstsend && !vrl() && !inl()) {
-				LinkColor(one);
+		if (!over() && step) {
+			y = step / attrs.width;
+			x = step - y * attrs.width;
+
+			if (y) {
+				axis.type() = Codec::AxisType::Y;
+				axis.value() = y;
+
+				ret = axis.encode(buff);
+				buff += ret;
+				size += ret;
 			}
-			arr.push_back(one);
-		}
-	};
+			if (x) {
+				axis.type() = Codec::AxisType::X;
+				axis.value() = x;
 
-	while (size != 0) {
-		eqlseg();
-		cmpseg();
+				ret = axis.encode(buff);
+				buff += ret;
+				size += ret;
+			}
+		}
+
+		block_fn();
 	}
 
+	firststart = false;
 	orig  = prevb;
 	prevb = nextb;
 	nextb = orig;
-	firstsend = true;
-}
-/**
- *	Function for creating a hash table of colors. The number
- *	of colors must not exceed 256 colors, so that the color
- *	link does not exceed 1 byte.
- */
-void X11::MakeLinksTable(void) {
-	std::map<uint32_t, size_t>::iterator it1, it2;
-	std::map<uint32_t, size_t> mp;
-	std::vector<pix> list;
-	uint32_t prev, next;
 
-	Vector(list);
-	firstsend = false;
-	prev = 0;
-
-	for (auto &p : list) {
-		it2 = mp.end();
-
-		if ((it1 = mp.find(p.u32())) != it2) {
-			it1->second++;
-			continue;
-		}
-
-		mp.insert(std::make_pair(p.u32(), 1));
-	}
-
-	while (mp.size() > 0xFF) {
-		it1 = mp.begin();
-		it2 = mp.begin();
-
-		for (; it1 != mp.end(); it1++) {
-			if (it1->second < it2->second) {
-				it2 = it1;
-			}
-		}
-
-		mp.erase(it2);
-	}
-
-	for (auto &g : mp) {
-		next = g.first;
-
-		for (auto &p : mp) {
-			NEXT_IF(next <= p.first);
-			NEXT_IF(prev >= p.first);
-			next = p.first;
-		}
-
-		links.push_back(prev = next);
-	}
+	return size;
 }
 
-void X11::SetLinks(byte *ptr, uint8_t size) {
-	uint32_t buff;
-
-	for (uint8_t i = 0; i < size; i++) {
-		memcpy(&buff, ptr + i * U32S, U32S);
-		links.push_back(buff);
-	}
-}
-
-uint8_t X11::PackLinks(byte *buff) {
-	for (auto &p : links) {
-		memcpy(buff, &p, U32S);
-		buff += U32S;
-	}
-
-	return static_cast<uint8_t>(links.size());
-}
-
-void X11::DestroyBuffer(void) {
-	RET_IF_VOID(!nextb);
+void X11::destroyBuffers(void) {
+	RETVOID_IF(!nextb);
 
 	XShmDetach(disp, &shm);
 	XDestroyImage(img);
 	shmdt(shm.shmaddr);
-	firstsend = false;
 
 	delete[] nextb;
 	delete[] prevb;
 }
 
 X11::~X11(void) {
-	DestroyBuffer();
+	destroyBuffers();
 	XTestGrabControl(disp, false);
 	XCloseDisplay(disp);
 }

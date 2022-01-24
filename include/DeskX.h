@@ -1,12 +1,13 @@
 
 #ifndef _DESKX_MAIN_H_
 #define _DESKX_MAIN_H_
+#ifndef VERSION
+#define VERSION "0.0"
+#endif
 
 #include <netinet/ip.h>
-#include <netinet/udp.h>
 #include <netinet/tcp.h>
-#ifdef __APPLE__
-#define iphdr ip
+#if defined(__APPLE__) || defined(_WIN32)
 #include <SDL2/SDL.h>
 #else
 #include <X11/Xlib.h>
@@ -22,6 +23,7 @@
 #include <sys/time.h>
 #include <functional>
 #include <algorithm>
+#include <sstream>
 #include <fstream>
 #include <numeric>
 #include <unistd.h>
@@ -32,104 +34,55 @@
 #include <thread>
 #include <vector>
 #include <ctime>
+#include <cmath>
 #include <map>
-/**
- *	Macro set.
- */
-#define ERROR(cond, text)		if ((cond)) { std::cout << "Error: " << std::string((text)) << "\n"; exit(1); }
+
+#define ERR(cond, text)			if ((cond)) { std::cout << "Error: " << std::string(text) << ".\n"; exit(1); }
 #define RET_IF(cond, value)		if ((cond)) return (value);
 #define NEXT_IF(cond)			if ((cond)) continue;
-#define RET_IF_VOID(cond)		if ((cond)) return;
+#define RETVOID_IF(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
 
 typedef unsigned char byte;
-/**
- *	The size of the data types used.
- */
-constexpr size_t SDDR_SIZE	= sizeof(sockaddr_in);
-constexpr size_t TV_SIZE	= sizeof(timeval);
-constexpr size_t U64S		= sizeof(uint64_t);
-constexpr size_t U32S		= sizeof(uint32_t);
-constexpr size_t U16S		= sizeof(uint16_t);
-/**
- *	The size of the transmitted color coding blocks.
- *
- *	COLOR_BLOCK:
- *		1. Number of repetitions
- *		2. Red color
- *		3. Green color
- *		4. Blue color
- *
- *	LINKED_BLOCK:
- *		1. Flag (0x00)
- *		2. Number of repetitions
- *		3. Color id
- *
- *	EQUAL_BLOCK:
- *		1. Flag (0xFF)
- *		2. Flag (0x00)
- *		3. Number of repetitions
- *
- *	INSIDE_BLOCK:
- *		1. Flag (0xFF)
- *		2. Number of repetitions
- *
- *	VERT_BLOCK:
- *		1. Flag (0xFE)
- *		2. Number of repetitions
- */
-constexpr size_t COLOR_BLOCK	= 4;
-constexpr size_t LINKED_BLOCK	= 3;
-constexpr size_t EQUAL_BLOCK	= U32S + 2;
-constexpr size_t INSIDE_BLOCK	= 2;
-constexpr size_t VERT_BLOCK		= 2;
-/**
- *	Packet sizes transmitted over TCP protocol (Max size).
- *
- *	AUTH_SIZE:
- *		1. Mode
- *		2. Difference between pixels
- *		3. Screen protocol
- *		4. Events protocol
- *		5. Vertical compression
- *		6. X11/SDL events
- *
- *	TABLE_SIZE:
- *		1. Number of items per table
- *		2. Table elements
- *
- *	KEY_BLOCK:
- *		1. Event type
- *		2. Key id
- */
-constexpr size_t AUTH_SIZE	= 6;
-constexpr size_t TABLE_SIZE	= U32S * 255 + 1;
-constexpr size_t KEY_BLOCK = 1 + U32S;
-/**
- *	Declaration of used structures.
- */
-struct sddr_struct {
-	sockaddr_in	sddr;
-	sockaddr	*ptr;
 
-	sddr_struct(void) {
-		ptr = reinterpret_cast<sockaddr *>(&sddr);
-	}
-	void operator=(sddr_struct &element) {
-		sddr = element.sddr;
-	}
-};
+namespace Consts {
+	constexpr size_t sddr = sizeof(sockaddr_in);
+	constexpr size_t u64  = sizeof(uint64_t);
+	constexpr size_t u32  = sizeof(uint32_t);
+	constexpr size_t u16  = sizeof(uint16_t);
+	constexpr size_t req  = u16 * 2 + 4;
+	constexpr size_t res  = u16 * 2 + 1;
+	constexpr size_t key  = Consts::u32 + 1;
+	constexpr size_t emax = key * 256 + u16 * 2 + 1;
+	constexpr size_t rgba = 4;
+	constexpr size_t rgb5bit = 8;		// 255 / 31
+	constexpr size_t rgb4bit = 17;		// 255 / 15
+	constexpr size_t rgb2bit = 85;		// 255 / 3
+	constexpr size_t rgb4to2bit = 5;	// 15 / 3
+	constexpr size_t rgb5to2bit = 10;	// 31 / 3 
+	const std::string logo = "\n"
+" __   ___  __       \\   /  Remote access software from a remote client\n"
+"|  \\ |__  /__` |__/  \\_/   to a computer hosting an X Window session.\n"
+"|__/ |___ .__/ |  \\  / \\   Version: " + std::string(VERSION) + "\n"
+"                    /   \\  https://github.com/DeskX11/DeskX\n\n";
+}
 
-struct input {
-	std::string ip = "", cmd = "rat", events = "tcp", screen = "tcp",
-				display = "", xauth  = "", path = "./palette.deskx";
-	bool secure = false, dvert = false;
-	uint8_t comp = 16;
-	int port = 0;
-};
+#if !defined(__APPLE__) && !defined(_WIN32)
+inline void sharedMem(XShmSegmentInfo &shm, char **ptr, int length) {
+	shm.shmid = shmget(IPC_PRIVATE, length * 2, IPC_CREAT | 0777);
+	assert(shm.shmid > 0);
 
-#include "Tools.h"
-#include "Network/UDP.h"
-#include "Network/TCP.h"
+	*ptr = (char *)shmat(shm.shmid, 0, 0);
+	shm.readOnly = false;
+	shm.shmaddr  = *ptr;
+	assert(shm.shmaddr != (char *)-1);
 
+	shmctl(shm.shmid, IPC_RMID, 0);
+}
+#endif
+
+#include "Net.h"
+#include "Args.h"
+#include "Events.h"
+#include "Codec.h"
 #endif

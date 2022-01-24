@@ -1,32 +1,25 @@
 
-#ifndef _DESKX_SERVER_
-#define _DESKX_SERVER_
+#ifndef _DESKX_SERVER_H_
+#define _DESKX_SERVER_H_
 
 #include "DeskX.h"
-#include "Server/X11.h"
-#include "Server/Actions.h"
+#include "server/Actions.h"
+#include "server/X11.h"
 
-inline std::string man_text("\033[1mDeskX\033[0m - Program for remote "
-"control of a computer in a local network. Server side.\n"
-"GitHub: https://github.com/DeskX11/DeskX\n\n"
-"Usage: ./dxs [options]\n"
+inline std::string readme(Consts::logo + "Usage: ./dxs [options]\n"
 "Options:\n"
+"	--bind-ip		IP address to listen on (default: all available IPs)\n"
 "	--port			Connection port\n"
-"	--display		Screen number (:0)\n"
-"	--xauth			Path to .Xauthority file\n"
-"	--palette		Path to palette file (default: ./palette.deskx)\n"
-"	--cmd			Command (default: rat)\n\n"
-"Commands:\n"
-"	palette			Palette Generation Mode\n"
-"	rat 			Start remote control\n"
-"	all			Launching the two previous modes at once\n\n"
+"	--display		Screen number (default: :0)\n"
+"	--xauth			Path to .Xauthority file\n\n"
 "Example:\n"
-"	./dxs --cmd=all --port=4431\n");
+"	./dxs --bind-ip=127.0.0.1 --port=4431 --display=:0 --xauth=.Xauthority\n");
 
-namespace Global {
-	inline TCP		*net;
-	inline X11		*x11;
-	inline input	args;
+namespace Server {
+	inline bool work = true;
+	inline Args args;
+	inline Net tcp;
+	inline X11 *x11 = nullptr;
 }
 
 #endif
