@@ -9,9 +9,10 @@
 # how to use:
 # it is supposed to run from the makefile, but
 # nothing prevents you from running it manually with
-# script.sh "$1"
+# script.sh "$1" "$2"
 # where
-# "$1" is a 'client' or 'server'
+# "$1" is 'client' or 'server'
+# "$2" is deskx version
 
 set -e
 set -u
@@ -22,7 +23,7 @@ script_filename="$(basename $0)"
 project_location="./.."
 client_filename='dxc'
 server_filename='dxs'
-deskx_version='1.3'
+deskx_version="${2}"
 package_version='1'
 fhs="usr/bin"
 package_filename="deskx-${1:-}_${deskx_version}-${package_version}_amd64"
