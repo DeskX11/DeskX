@@ -15,6 +15,6 @@ keyboard:
 	g++ src/Keyboard.cpp -o keys -std=c++17
 
 deb-client:
-	cd deb; ./build.sh client
+	cd deb; ./build.sh client $(VERSION)
 deb-server:
-	cd deb; ./build.sh server
+	cd deb; ./build.sh server $(VERSION)
