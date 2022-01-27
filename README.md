@@ -8,7 +8,7 @@ Light and fast program for remote control of a computer with X11
 <p align="center">
 	<a href="https://github.com/DeskX11/DeskX/releases">Releases</a> | 
 	<a href="./docs/">Docs</a> | 
-	<a href="https://github.com/DeskX11/DeskX#getting-started">How to use?</a> | 
+	<a href="./docs/Installation.md">Installation guide</a> | 
 	<a href="https://github.com/DeskX11/DeskX/discussions/categories/general">Discussions</a>
 <p>
 <p align="center">

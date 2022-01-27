@@ -69,10 +69,9 @@ Version: ${deskx_version}
 Homepage: https://github.com/DeskX11/DeskX
 Architecture: amd64
 Maintainer: mrrva <no email>
-Description: performance-oriented remote ${1} for a local network
- The project was created for its own use within the home local network
- (it is not recommended to use it over
- the Internet without an encrypted tunnel).
+Description: performance-oriented remote control of a computer, ${1}-side
+ (it is not recommended to use it over the Internet without an encrypted
+ tunnel, for example can use: SSH with port forwarding).
 Depends: libx11-dev,
          libxtst-dev,
          libxext-dev
