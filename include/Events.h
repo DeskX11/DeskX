@@ -26,7 +26,7 @@ public:
 	size_t size(void) const;
 };
 
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 inline std::map<uint32_t, uint32_t> sdlkeys =
 {
 	{ SDL_SCANCODE_SPACE, 0x20 },

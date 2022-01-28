@@ -7,7 +7,7 @@
 
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 #include <SDL2/SDL.h>
 #else
 #include <X11/Xlib.h>
@@ -67,7 +67,7 @@ namespace Consts {
 "                    /   \\  https://github.com/DeskX11/DeskX\n\n";
 }
 
-#if !defined(__APPLE__) && !defined(_WIN32)
+#if !defined(__APPLE__) && !defined(__CYGWIN__)
 inline void sharedMem(XShmSegmentInfo &shm, char **ptr, int length) {
 	shm.shmid = shmget(IPC_PRIVATE, length * 2, IPC_CREAT | 0777);
 	assert(shm.shmid > 0);

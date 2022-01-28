@@ -24,7 +24,7 @@ uint8_t Actions::sync(void) {
 }
 
 void Actions::start(void) {
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 	assert(Client::scr = new SDL);
 #else
 	assert(Client::scr = new X11);

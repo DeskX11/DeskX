@@ -4,7 +4,7 @@
 
 #include "DeskX.h"
 #include "client/Actions.h"
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 #include "client/SDL.h"
 #define _EXIT_KEY SDL_SCANCODE_F7
 #else
@@ -27,7 +27,7 @@ inline std::string readme(Consts::logo + "Usage: ./dxс [options]\n"
 namespace Client {
 	inline Args args;
 	inline Net tcp;
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 	inline SDL *scr = nullptr;
 #else
 	inline X11 *scr = nullptr;

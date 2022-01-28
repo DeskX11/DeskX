@@ -57,7 +57,7 @@ bool Net::send(byte *ptr, uint32_t size) {
 	int sock = server ? slave : master;
 	int ret, step = 0, flag = 0;
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(__CYGWIN__)
 	flag = MSG_NOSIGNAL;
 #endif
 	while ((ret = ::send(sock, ptr + step, size, flag)) != size) {

@@ -27,7 +27,7 @@ The project was created for its own use within the home network (you can use Des
 * Multiple Commands: Server Side Shutdown, Remote Control
 * Fullscreen or windowed mode
 * Two separate streams for transferring screen data and events
-* Linux & macOS support
+* Linux & macOS & Windows support
 
 ## An example of working with compression
 
@@ -58,6 +58,16 @@ brew install sdl2
 git clone https://github.com/DeskX11/DeskX/
 cd DeskX
 make client
+
+# Windows
+# To compile, you need to use Cygwin + MinGW. During the installation of Cygwin, you need to select
+# the components g++, make, SDL2, git. After open Cygwin terminal and follow the instructions below
+git clone https://github.com/DeskX11/DeskX/
+cd DeskX
+make client
+# If you want to use the program outside the Cygwin terminal, you need to put the necessary DLLs
+# next to the exe file and then you can run DeskX without being tied to the environment:
+# cyggcc_s-seh-1.dll, cygSDL2-2-0-0.dll, cygstdc++-6.dll, cygwin1.dll
 ```
 
 * Build the .deb packages

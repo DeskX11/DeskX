@@ -33,7 +33,7 @@ void Events::decode(byte *package) {
 
 void Events::add(const uint32_t key, const KeyType type) {
 	uint32_t x11key = key;
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 	std::map<uint32_t, uint32_t>::iterator it;
 
 	if ((it = sdlkeys.find(key)) != sdlkeys.end()) {

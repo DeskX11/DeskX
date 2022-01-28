@@ -78,7 +78,7 @@ byte *Args::pack(void) {
 	tmp += Consts::u16;
 	*tmp++ = args.mode.hdistance;
 	*tmp++ = args.mode.vdistance;
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 	args.mode.sdl = 1;
 #endif
 	*tmp = args.mode.sdl;
