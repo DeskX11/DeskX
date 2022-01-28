@@ -2,11 +2,7 @@
 #include "../../include/Client.h"
 
 SDL::SDL(void) {
-	//ERR(SDL_Init(SDL_INIT_VIDEO) < 0, "Can't init SDL");
-	if ( SDL_Init(SDL_INIT_VIDEO) != 0 ) {
-	    std::cout << "Error : " << SDL_GetError() << std::endl;
-	    exit(1);
-	}
+	ERR(SDL_Init(SDL_INIT_VIDEO) < 0, "Can't init SDL");
 
 	width  = Client::args.get().mode.width;
 	height = Client::args.get().mode.height;

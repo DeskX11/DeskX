@@ -61,7 +61,7 @@ make client
 
 # Windows
 # To compile, you need to use Cygwin + MinGW. During the installation of Cygwin, you need to select
-# the components g++, make, SDL2, git. After open Cygwin terminal and follow the instructions below
+# the components g++, make, SDL2, git. After open Cygwin terminal and follow the instructions below:
 git clone https://github.com/DeskX11/DeskX/
 cd DeskX
 make client
@@ -127,12 +127,12 @@ This error usually occurs when you try to start `dxs` via ssh. To solve it, you 
 
 For more information you can read xauth, Xsecurity and xhost man pages.
 
-## How to use it on macOS?
+## How to use it on macOS / Windows?
 
-On macOS, you can use the client side of the program to connect to your linux server. To do this, you must have the `SDL2` library installed. It can be supplied for example via the `brew` package manager. After that, compile through the `make client` or download the already compiled version <a href="https://github.com/DeskX11/DeskX/releases">here</a>.
+On macOS / Windows, you can use the client side of the program to connect to your linux server. To do this, you must have the `SDL2` library installed. Download the already compiled version <a href="https://github.com/DeskX11/DeskX/releases">here</a>.
 
 ## Requirements
 
-* OS with x11 (SDL2 for macOS)
+* OS with x11 (SDL2 for macOS / Windows)
 * `g++ make`
 * `libx11-dev libxtst-dev libxext-dev` or `sdl2`
