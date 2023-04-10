@@ -38,9 +38,8 @@
 #include <map>
 
 #define ERR(cond, text)			if ((cond)) { std::cout << "Error: " << std::string(text) << ".\n"; exit(1); }
-#define RET_IF(cond, value)		if ((cond)) return (value);
+#define RET_IF(cond, ...)		if ((cond)) return __VA_ARGS__;
 #define NEXT_IF(cond)			if ((cond)) continue;
-#define RETVOID_IF(cond)		if ((cond)) return;
 #define BREAK_IF(cond)			if ((cond)) break;
 
 typedef unsigned char byte;

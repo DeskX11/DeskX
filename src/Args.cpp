@@ -2,7 +2,7 @@
 #include "../include/DeskX.h"
 
 Args::Args(int argc, char **argv) {
-	RETVOID_IF(argc < 2 || !argv);
+	RET_IF(argc < 2 || !argv);
 
 	for (int i = 1; i < argc; i++) {
 		char *val = strchr(argv[i], '=');

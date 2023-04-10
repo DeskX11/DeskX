@@ -47,8 +47,8 @@ void Actions::screen(void) {
 	byte *ptr = reinterpret_cast<byte *>(&number);
 	assert(pack);
 
-	while (true) {
-		BREAK_IF(!Client::tcp.recv(ptr, Consts::u64));
+	while (Client::tcp.alive()) {
+		NEXT_IF(!Client::tcp.recv(ptr, Consts::u64));
 		if (number > 0) {
 			BREAK_IF(!Client::tcp.recv(pack, number));
 			Client::scr->screen(number, pack);
@@ -64,9 +64,9 @@ void Actions::events(void) {
 
 	assert(pack);
 
-	while (true) {
+	while (Client::tcp.alive()) {
 		events = Client::scr->events();
-		events.encode(pack);
+		NEXT_IF (!events.encode(pack));
 		BREAK_IF(!Client::tcp.send(pack, events.need() + 1));
 	}
 

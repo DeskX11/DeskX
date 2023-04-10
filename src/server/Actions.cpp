@@ -27,7 +27,7 @@ void Actions::start(void) {
 	memcpy(res + 1 + Consts::u16, &height, Consts::u16);
 	memcpy(res + 1, &width, Consts::u16);
 
-	RETVOID_IF(!Server::tcp.send(res, Consts::res));
+	RET_IF(!Server::tcp.send(res, Consts::res));
 	Server::x11->start();
 
 	Server::tcp.buffer(Server::x11->bufferTCP() + Consts::u64);
@@ -45,11 +45,12 @@ void Actions::screen(void) {
 
 	assert(pack);
 
-	while (true) {
-		size = Server::x11->screen(pack);
+	while (Server::tcp.alive()) {
+		NEXT_IF(!(size = Server::x11->screen(pack)));
 		BREAK_IF(!Server::tcp.send(pack, size + Consts::u64));
 	}
 
+	Server::tcp.close();
 	delete[] pack;
 }
 
@@ -60,11 +61,10 @@ void Actions::events(void) {
 	byte *ptr = reinterpret_cast<byte *>(&number);
 	assert(pack);
 
-	while (true) {
-		BREAK_IF(!Server::tcp.recv(ptr, 1));
+	while (Server::tcp.alive()) {
+		NEXT_IF(!Server::tcp.recv(ptr, 1));
 
 		Events events = Events(number);
-
 		BREAK_IF(!Server::tcp.recv(pack, events.need()));	
 		events.decode(pack);
 

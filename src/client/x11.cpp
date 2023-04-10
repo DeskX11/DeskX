@@ -99,6 +99,12 @@ Events X11::events(void) {
 	list.getX() = std::max(x, 0);
 	list.getY() = std::max(y, 0);
 
+	if (x != x_prev || y != y_prev) {
+		list.mouse() = true;
+		x_prev = x;
+		y_prev = y;
+	}
+
 	while (XPending(disp)) {
 		XNextEvent(disp, &event);
 		bool flag = false;

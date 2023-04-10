@@ -9,6 +9,7 @@ private:
 	size_t height, width, tcpbuff;
 	SDL_Window *win;
 	SDL_Surface *surface;
+	int x_prev = 0, y_prev = 0;
 
 public:
 	size_t bufferTCP(void);

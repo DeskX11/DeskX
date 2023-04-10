@@ -11,16 +11,18 @@ protected:
 	std::vector<std::pair<uint32_t, KeyType>> list;
 	uint16_t x = 0, y = 0;
 	uint8_t number = 0;
+	bool mouse_ = false;
 
 public:
 	Events(const uint8_t n) : number(n) { list.clear(); };
 	Events(void) { }
 	size_t need(void) const;
 	void decode(byte *);
-	void encode(byte *);
+	const bool encode(byte *);
 	void add(const uint32_t, const KeyType);
 	uint16_t &getX(void);
 	uint16_t &getY(void);
+	bool &mouse(void);
 	std::pair<uint32_t, KeyType> &operator[](const int);
 	void operator=(const Events &);
 	size_t size(void) const;

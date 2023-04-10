@@ -2,7 +2,7 @@
 #include "../../include/DeskX.h"
 
 Codec::Block::Block(const byte *ptr) {
-	RETVOID_IF(!ptr);
+	RET_IF(!ptr);
 	rgb_.r = ptr[0];
 	rgb_.g = ptr[1];
 	rgb_.b = ptr[2];
@@ -165,7 +165,7 @@ uint8_t Codec::Block::decode(const byte *ptr, Codec::RGB prev) {
 
 void Codec::Block::write(byte *orig, const size_t width,
 						 uint16_t &x, uint16_t &y) {
-	RETVOID_IF(!orig || !width);
+	RET_IF(!orig || !width);
 
 	orig += y * width * Consts::rgba + x * Consts::rgba;
 	uint64_t step = 0, num;

@@ -6,13 +6,13 @@ size_t Events::need(void) const {
 }
 
 void Events::decode(byte *package) {
-	RETVOID_IF(!package);
+	RET_IF(!package);
 
 	list.clear();
 
 	memcpy(&y, package + Consts::u16, Consts::u16);
 	memcpy(&x, package, Consts::u16);
-	RETVOID_IF(!number);
+	RET_IF(!number);
 	package += Consts::u16 * 2;
 
 	std::pair<uint32_t, KeyType> pair;
@@ -47,8 +47,9 @@ void Events::add(const uint32_t key, const KeyType type) {
 	number++;
 }
 
-void Events::encode(byte *ptr) {
-	RETVOID_IF(!ptr);
+const bool Events::encode(byte *ptr) {
+	RET_IF(!ptr, false);
+	RET_IF(!number && !mouse_, false);
 
 	number = std::min((int)list.size(), 0xFE);
 	*ptr++ = number;
@@ -56,7 +57,7 @@ void Events::encode(byte *ptr) {
 	memcpy(ptr + Consts::u16, &y, Consts::u16);
 	memcpy(ptr, &x, Consts::u16);
 
-	RETVOID_IF(!number);
+	RET_IF(!number, true);
 	ptr += Consts::u16 * 2;
 
 	for (auto &p : list) {
@@ -64,6 +65,8 @@ void Events::encode(byte *ptr) {
 		ptr[Consts::u32] = p.second;
 		ptr += Consts::key;
 	}
+
+	return true;
 }
 
 uint16_t &Events::getX(void) {
@@ -72,6 +75,10 @@ uint16_t &Events::getX(void) {
 
 uint16_t &Events::getY(void) {
 	return y;
+}
+
+bool &Events::mouse(void) {
+	return mouse_;
 }
 
 size_t Events::size(void) const {
@@ -88,4 +95,5 @@ void Events::operator=(const Events &input) {
 	y = input.y;
 	list = input.list;
 	number = input.number;
+	mouse_ = input.mouse_;
 }

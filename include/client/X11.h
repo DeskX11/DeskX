@@ -13,6 +13,7 @@ protected:
 	XImage *img;
 	GC gc;
 	int scr;
+	int x_prev = 0, y_prev = 0;
 
 	Window newWindow(int, int, bool);
 

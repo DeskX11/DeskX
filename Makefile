@@ -1,4 +1,4 @@
-VERSION = 1.3
+VERSION = 1.3.1
 SRC = src/Net.cpp src/Args.cpp src/Events.cpp src/codec/*.cpp
 X11 = -lX11 -lXext -lXtst
 FLAGS = -lpthread -Ofast -std=c++17 -DVERSION="\"$(VERSION)\""

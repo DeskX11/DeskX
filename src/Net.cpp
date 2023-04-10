@@ -2,7 +2,7 @@
 #include "../include/DeskX.h"
 
 Net::Net(const int port, const std::string ip, const bool srv_) {
-	RETVOID_IF(!port);
+	RET_IF(!port);
 
 	own.in.sin_addr.s_addr = srv_ && ip.empty() ? INADDR_ANY : inet_addr(ip.c_str());
 	own.in.sin_port = htons(port);
@@ -15,7 +15,10 @@ Net::Net(const int port, const std::string ip, const bool srv_) {
 	if ((server = srv_)) {
 		ERR(bind(master, own.ptr, Consts::sddr) != 0, "Unable to bind network port to socket");
 		ERR(listen(master, 5) != 0, "Unable to start listening to socket");
+		return;
 	}
+
+	keelAlive(master);
 }
 
 void Net::opts(int &sock) {
@@ -26,6 +29,13 @@ void Net::opts(int &sock) {
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,  opt, sizeof(tv));
 	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,  opt, sizeof(tv));
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &re, sizeof(re));
+}
+
+void Net::keelAlive(int &sock) {
+	int num = 1;
+	setsockopt(sock, SOL_SOCKET,  SO_KEEPALIVE, &num, sizeof(num));
+	num = 4;
+	setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT,  &num, sizeof(num));
 }
 
 void Net::buffer(const uint64_t size) {
@@ -50,6 +60,7 @@ bool Net::accept(void) {
 	RET_IF(slave < 0, false);
 
 	opts(slave);
+	keelAlive(slave);
 	return true;
 }
 
@@ -57,14 +68,22 @@ bool Net::send(byte *ptr, uint32_t size) {
 	int sock = server ? slave : master;
 	int ret, step = 0, flag = 0;
 
+	RET_IF(sock == -1, false);
 #if !defined(__APPLE__) && !defined(__CYGWIN__)
 	flag = MSG_NOSIGNAL;
 #endif
 	while ((ret = ::send(sock, ptr + step, size, flag)) != size) {
-		RET_IF(ret < 1, false);
+		RET_IF(!ret, false);
+		BREAK_IF(ret == -1);
 		step += ret;
 		size -= ret;
 	}
+
+	if (ret == -1) {
+		rm(sock);
+		return false;
+	}
+
 	return true;
 }
 
@@ -72,11 +91,20 @@ bool Net::recv(byte *ptr, uint32_t size) {
 	int sock = server ? slave : master;
 	int ret, step = 0;
 
+	RET_IF(sock == -1, false);
+
 	while ((ret = ::recv(sock, ptr + step, size, 0)) != size) {
-		RET_IF(ret < 1, false);
+		RET_IF(!ret, false);
+		BREAK_IF(ret == -1);
 		step += ret;
 		size -= ret;
 	}
+
+	if (ret == -1) {
+		rm(sock);
+		return false;
+	}
+
 	return true;
 }
 
@@ -88,8 +116,12 @@ const std::string Net::from(void) {
 	return std::string(tmp);
 }
 
+const bool Net::alive(void) {
+	return (server ? slave : master) > -1;
+}
+
 void Net::rm(int &sock) {
-	RETVOID_IF(sock < 0);
+	RET_IF(sock < 0);
 	shutdown(sock, SHUT_RDWR);
 	::close(sock);
 	sock = -1;

@@ -129,7 +129,7 @@ uint64_t X11::screen(byte *buff) {
 	};
 
 	auto block_fn = [&](void) {
-		RETVOID_IF(over());
+		RET_IF(over());
 		rgb = Codec::Block(orig);
 
 		while (rgb.equal(orig, hdist) && rgb.repeat() < 0xFD) {
@@ -139,10 +139,10 @@ uint64_t X11::screen(byte *buff) {
 		}
 
 		if (rgb.repeat() == 1 && passed > 3) {
-			RETVOID_IF(leftlink());
+			RET_IF(leftlink());
 		}
 		if (rgb.repeat() == 1 && passed > attrs.width) {
-			RETVOID_IF(toplink());
+			RET_IF(toplink());
 		}
 
 		if (rgb.repeat()) {
@@ -197,7 +197,7 @@ uint64_t X11::screen(byte *buff) {
 }
 
 void X11::destroyBuffers(void) {
-	RETVOID_IF(!nextb);
+	RET_IF(!nextb);
 
 	XShmDetach(disp, &shm);
 	XDestroyImage(img);

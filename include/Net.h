@@ -22,6 +22,7 @@ protected:
 
 	void rm(int &);
 	void opts(int &);
+	void keelAlive(int &);
 
 public:
 	Net(void) { }
@@ -35,6 +36,7 @@ public:
 	void close(void);
 	void operator=(const Net &);
 	void closeAll(void);
+	const bool alive(void);
 };
 
 #endif
