@@ -1,10 +1,10 @@
-<pre align="center">
+<div align="center"><pre align="center">
  __   ___  __       \   /
 |  \ |__  /__` |__/  \_/ 
 |__/ |___ .__/ |  \  / \ 
                     /   \
 Light and fast program for remote control of a computer with X11
-</pre>
+</pre></div>
 <p align="center">
 	<a href="https://github.com/DeskX11/DeskX/releases">Releases</a> | 
 	<a href="./docs/">Docs</a> | 
