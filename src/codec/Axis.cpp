@@ -1,50 +1,61 @@
 
-#include "../../include/DeskX.h"
+#include <netinet/in.h>
+#include <codec/axis.hpp>
 
-Codec::Axis::Axis(const Codec::Axis &obj) {
-	val_ = obj.val_;
-	type_ = obj.type_;
+namespace codec {
+
+void
+axis::set(const uint16_t &num, const axis::type xy) {
+	val = num;
+	type_ = xy;
 }
 
-uint16_t &Codec::Axis::value(void) {
-	return val_;
-}
-
-Codec::AxisType &Codec::Axis::type(void) {
-	return type_;
-}
-
-uint8_t Codec::Axis::encode(byte *ptr) {
-	RET_IF(!ptr, 0);
-
-	val_ = std::min(val_, (uint16_t)0x1FFF);
-	ptr[0] = 0x80;
-	// 1 - flag
-	// 1 - 2 bytes length
-	// 0 - x or y(1)
-	if (val_ <= 31) {
-		ptr[0] |= type_ | (val_ & 0x1F);
+size_t
+axis::encode(byte *ptr) const {
+	if (val <= 0x1F) {
+		*ptr = (type_ == type::X ? 0x00 : 0x20) | (val & 0x1F);
 		return 1;
 	}
 
-	byte *bytes = reinterpret_cast<byte *>(&val_);
-	ptr[0] |= 0x40 | type_ | bytes[1];
-	ptr[1] = bytes[0];
+	uint16_t &tmp = *reinterpret_cast<uint16_t *>(ptr);
+	tmp = 0x4000 | (type_ == type::X ? 0x0000 : 0x2000) | (val & 0x1FFF);
+	tmp = htons(tmp);
 	return 2;
 }
 
-uint8_t Codec::Axis::decode(const byte *ptr) {
-	RET_IF(!ptr, 0);
+size_t
+axis::decode(const size_t &width, const size_t &shift, byte **ptr, byte **scr) {
+	uint16_t ret;
+	size_t val;
+	type xy;
 
-	type_ = (ptr[0] & Y) != 0 ? Y : X;
-
-	if ((ptr[0] & 0x40) == 0) {
-		val_ = ptr[0] & 0x1F;
-		return 1;
+	const byte b = *(*ptr);
+	switch (b & 0xE0) {
+	case 0x00: xy  = type::X;
+			   val = b & 0x1F;
+			   ret = 1;
+			   break;
+	case 0x20: xy = type::Y;
+			   val = b & 0x1F;
+			   ret = 1;
+			   break;
+	case 0x40: xy = type::X;
+			   ret = ntohs(*reinterpret_cast<uint16_t *>(*ptr));
+			   val = ret & 0x1FFF;
+			   ret = 2;
+			   break;
+	case 0x60: xy = type::Y;
+			   ret = ntohs(*reinterpret_cast<uint16_t *>(*ptr));
+			   val = ret & 0x1FFF;
+			   ret = 2;
+			   break;
+	default:   INFO(WARN"Incorrect Axis block, shift 0");
+			   return 0;
 	}
 
-	byte *bytes = reinterpret_cast<byte *>(&val_);
-	bytes[1] = ptr[0] & 0x1F;
-	bytes[0] = ptr[1];
-	return 2;
+	(*ptr) += ret;
+	(*scr) += val * shift * (xy == type::X ? 1 : width);
+	return ret;
+}
+
 }

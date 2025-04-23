@@ -1,111 +1,60 @@
 
-#include "../include/DeskX.h"
+#include <stdlib.h>
+#include <string.h>
+#include <macro.hpp>
+#include <args.hpp>
 
-Args::Args(int argc, char **argv) {
-	RET_IF(argc < 2 || !argv);
+args::args(const int argc, char **argv) {
+	RET_IF(argc < 2);
+	const std::string arg(argv[1]);
+	type_ = arg == "server" ? SERVER : (arg == "client" ? CLIENT : UNKNOWN);
 
-	for (int i = 1; i < argc; i++) {
-		char *val = strchr(argv[i], '=');
-		ERR(!val, "Incorrect argument " + std::string(argv[i]));
-		ERR(!(++val), "Argument " + std::string(argv[i]) + " is empty");
+	std::pair<std::string, std::string> tmp;
+	char *key, *val;
 
-		NEXT_IF(val - argv[i] <= 3);
-		ERR(!read(argv[i], val), "Incorrect argument " + std::string(argv[i]));
+	for (int i = 2; i < argc; i++) {
+		NEXT_IF(::strlen(argv[i]) < 4 || ::strncmp("--", argv[i], 2) != 0);
+
+		key = argv[i] + 2;
+		val = ::strchr(key, '=');
+		NEXT_IF(!val);
+
+		map_.insert(std::make_pair(std::string(key, val - key),
+								   std::string(val + 1)));
 	}
 }
 
-bool Args::read(char *full, char *val) {
-	*(val - 1) = 0;
-	std::string name(full + 2), value(val);
-	bool status = false;
-
-	if (name == "ip" || name == "bind-ip") {
-		args.ip = value;
-		status = true;
-	}
-	if (name == "port") {
-		args.port = atoi(value.c_str());
-		status = true;
-	}
-	if (name == "resolution") {
-		unsigned int w = 0, h = 0;
-		sscanf(value.c_str(), "%4ux%4u", &w, &h);
-		args.mode.width  = w;
-		args.mode.height = h;
-		status = true;
-	}
-	if (name == "vertical-distance") {
-		args.mode.vdistance = atoi(value.c_str());
-		status = true;
-	}
-	if (name == "color-distance") {
-		args.mode.hdistance = atoi(value.c_str());
-		status = true;
-	}
-	if (name == "display") {
-		args.display = value;
-		status = true;
-	}
-	if (name == "xauth") {
-		args.xauth = value;
-		status = true;
-	}
-	if (name == "cmd") {
-		unsigned int cmd;
-		sscanf(value.c_str(), "%1u", &cmd);
-		ERR(cmd > END, "Incorrect `cmd` argument");
-		args.mode.func = static_cast<Func>(cmd);
-		status = true;
-	}
-
-	return status;
+void
+args::operator=(const args &arg) {
+	map_ = arg.map_;
+	type_ = arg.type_;
 }
 
-void Args::operator=(const Args &inps) {
-	args = inps.args;
+std::string
+args::operator[](const std::string &key) const {
+	auto it = map_.find(key);
+	return it == map_.end() ? std::string() : it->second;
 }
 
-byte *Args::pack(void) {
-	byte *buff = new byte[Consts::req];
-	byte *tmp  = buff;
-	assert(buff);
-
-	memcpy(tmp, &args.mode.func, 1);
-	tmp++;
-	memcpy(tmp, &args.mode.width, Consts::u16);
-	tmp += Consts::u16;
-	memcpy(tmp, &args.mode.height, Consts::u16);
-	tmp += Consts::u16;
-	*tmp++ = args.mode.hdistance;
-	*tmp++ = args.mode.vdistance;
-#if defined(__APPLE__) || defined(__CYGWIN__)
-	args.mode.sdl = 1;
-#endif
-	*tmp = args.mode.sdl;
-
-	return buff;
+bool
+args::ok(void) const {
+	return type_ != UNKNOWN && !map_.empty();
 }
 
-bool Args::unpack(byte *config) {
-	uint8_t func;
-
-	RET_IF(!config,    false);
-	memcpy(&func, config,  1);
-	RET_IF(func > END, false);
-	args.mode.func = static_cast<Func>(func);
-	config++;
-
-	memcpy(&args.mode.width, config, Consts::u16);
-	config += Consts::u16;
-	memcpy(&args.mode.height, config, Consts::u16);
-	config += Consts::u16;
-	args.mode.hdistance = *config++;
-	args.mode.vdistance = *config++;
-	args.mode.sdl = *config;
-
-	return true;
+args::type
+args::mode(void) const {
+	return type_;
 }
 
-Inputs &Args::get(void) {
-	return args;
+void
+args::print(void) const {
+	for (const auto &[key, value] : map_) {
+		std::cout << key << ": " << value << "\n";
+	}
+}
+
+int
+args::num(const std::string &key) const {
+	auto it = map_.find(key);
+	return it == map_.end() ? -1 : ::atoi(it->second.c_str());
 }

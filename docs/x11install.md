@@ -1,14 +1,14 @@
 
 ## Intro
-Here is a step-by-step instruction for installing the program on a remote server. The case will be considered when you have access to the server via SSH, which is running on Ubuntu. We will use xfce4 as the desktop environment.
+The process of preparing a server for remote control will be described below. All actions will be performed on the Ubuntu distribution via ssh.
 
 ## Step 1: Downloading the necessary components
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install xfce4 g++ make libx11-dev libxtst-dev libxext-dev git
+sudo apt install xfce4 g++ make libx11-dev libxtst-dev libxext-dev libportal-dev libpipewire-0.3-dev git libsdl2-dev
 git clone https://github.com/DeskX11/DeskX
 ```
-Here we have downloaded xfce4, the C++ language compiler and the DeskX program itself. An alternative way to install DeskX on Debian-like systems is to download the prebuilt `.deb` package from <a href="https://github.com/DeskX11/DeskX/releases">here</a>.
+Here we download the window manager ABAB and the necessary components for compiling DeskX. You can skip downloading them and just install the ready-made deb package from [here](https://github.com/DeskX11/DeskX/releases).
 
 ## Step 2: X11 setup
 For X11 to work properly (given that this is a remote server that does not have a monitor), we need to emit the presence of a monitor, this can be done using a special driver `xserver-xorg-video-dummy`.
@@ -44,16 +44,12 @@ Section "Screen"
         Virtual 1600 900
     EndSubSection
 EndSection
-
 ```
-
-## Step 3: Launch
-Now it remains to compile the program and run everything.
+## Step 3: Compiling and running VM
+Now it remains to compile the program and run WM. 
 ```bash
 cd DeskX
-make server
-
+make
 sudo startxfce4 &
-sudo ./dxs --port=6532 --display=:0 --xauth=../.Xauthority
 ```
-The .Xauthority file is usually located in the user's home directory. You can already change the connection port (as well as other parameters) for yourself.
+Now everything is ready to launch DeskX. All that remains is to create the necessary environment, you can read about it [here](https://github.com/DeskX11/DeskX/blob/main/docs/howtouse.md).

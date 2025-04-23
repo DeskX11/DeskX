@@ -1,42 +1,42 @@
 
-## Packet Encoding:
-Each frame packet first has a packet size of `uint64` bytes and the frame data itself. After the first sending of the first (reference) frame, the algorithm starts to work, which calculates the unchanged parts of the screen and does not send data about them (this can significantly save the packet size). The current version of the codec is hardware dependent (checked and tested on `x86` architecture) due to the peculiarities of data placement in memory (in `x86` bits are placed from right to left).
+## About codec
+DeskX uses its own codec to encode images and transmit events from the user's device. This was done to reduce the amount of data transmitted and, as a result, reduce the delay between the action and the result on the screen.
 
-## Frame data:
-Frame data has 2 types: 
-* Coordinate data (the position on the screen where rendering starts)
-* Color block (data coding areas of the screen in accordance with a specific color)
+## Events
+An event message stores the mouse coordinates and information about the keys used. Up to `5 keys` used can fit in an event message (including mouse and keyboard buttons). The message structure is shown below.
+<pre>
++--------+--------++--------+-----------+--------+-----------+-----+
+| uint16 | uint16 || uint32 | uint8     | uint32 | uint8     |     |
++--------+--------++--------+-----------+--------+-----------+ ... |
+| MouseX | MouseY || Key #1 | Action #1 | Key #2 | Action #2 |     |
++--------+--------++--------+-----------+--------+-----------+-----+
+</pre>
+There are several types of actions: `MOUSE_UP`, `MOUSE_DOWN`, `KEY_UP`, `KEY_DOWN`, `NO_TYPE`. If Action #1 is of type `NO_TYPE` this means that there aren't actions and further reading of the message can be interrupted.
 
-## Coordinate data structure 
-In this byte, the first bit is 1 (which indicates that we have coordinate data in front of us). The next bit indicates the length of the data: if 0 - one byte, otherwise 2 bytes. The next bit indicates the coordinate axis: If 0 is the X axis, otherwise the Y axis. The next bytes of the current bit contain the offset number from the current position. If the offset number does not fit in the current byte, the second bit is set to 1 (as mentioned above) and the data is written to an additional byte. Thus, coordinate data can be 1 to 2 bytes in size.
+## Screen
+The message size is specified in the first 4 bytes. Then comes the message body itself. It can contain 2 types of data: `axial offset` and `color data`. The `axial` offset data can be either `one or two bytes`, depending on the offset size. The `color` data can be from `1 to 4 bytes` in size. It also depends on a number of factors. The color data also contains the number of pixels of the same color in a row. More detailed information is provided below. 
 
-## Color block data structure:
-The first bit of the color block is set to 0, which allows the decoder to distinguish it from the coordinate data. 
-A color block can be of several types: 
-* `Line` - Encodes a fixed number of pixels with a specific color.
-* `Top link` - Link to a pixel of the same color that is above the current one.
-* `Left link` - Link to a pixel of the same color that is located to the left of the current one.
+#### Axial offset
+Axial offset structure (the numbers represent the number of bits used):
+<pre>
++-------------------------------------------------+---------------+
+| Mandatory byte                                  | Optional part |
++---------------+--------------------+------------+---------------+
+| Axis flag (1) | Two bytes flag (1) | Amount (6) | Amount (8)    |
++-------------------------------------------------+---------------+
+</pre>
 
-### 14 bit palette
-The codec uses its own `14-bit palette` (`4 bits` for red, `5 bits` for green, `5 bits` for blue). Such a palette is made specifically to store 1 first color bit which indicates the type of palette of the block (`14 bit` or `8 bit`).
+#### Color data (8 bit)
+One byte for describing a color contains the number of repetitions of the color that is on the row above. This means that the color that is on the Y axis directly above this pixel will be used to paint the specified number of pixels in the row. The maximum number of `repetitions is 31`.
 
-### Line
-The line has the following structure:
-The first bit is 0 (as mentioned above). The second bit indicates the color palette, if 0 - own `14-bit palette` is used, otherwise `8-bit palette` is used. The following bits are used to encode the color (thus a color can take from one to two bytes of data). The next byte indicates the number of pixels to be filled with the specified color. Thus, the block size can be from two to three bytes. It also has the following coding features:
-* The `8-bit palette` is used only when there is no loss in color quality relative to the `14-bit palette`. Also, the number of repetitions in this mode cannot exceed the value `127` (since the first bit from the byte of the defining repetition is used as a flag to select the mode among `8-bit palettes`).
-* If, when encoding a color line in a `14-bit palette`, the color is exactly the same as the previous one, the first byte takes the value 0, the next byte stores the number of repetitions.
+#### Color data (16 bit)
+Two bytes for describing a color contains the number of repetitions and the color number from the [palette of the most popular colors](https://github.com/DeskX11/DeskX/tree/main/src/codec/palette.hpp). The maximum number of repetitions that such a byte `can contain is 31`.
 
-Line data with a `14-bit palette` is placed as follows:
-* First byte: contains a set of flags listed above and part of the pixel color data.
-* Second byte: contains the number of repeating pixels (placed second in the queue specifically to optimize the amount of space occupied in other color block modes).
-* Third byte: contains the rest of the pixel color data.
+#### Color data (24 bit)
+This data block contains the number of repetitions (up to `127 pixels per row`) and the color the pixels will be painted in. The color is encoded in a `14-bit palette`.
 
-Line data with a `8-bit palette` is placed as follows:
-* First byte: contains a set of flags listed above and pixel color data (2 bits per color).
-* Second byte: contains a flag indicating the type of palette (first bit) and the number of encoded pixels.
+#### Color data (32 bit)
+The color of this block is exactly the same as the 24-bit color block, but the number of repetitions in the row can reach `up to 32767`, indicating a color encoded in a `14-bit palette`.
 
-### Top / Left link
-Encoded using two bytes, the first of which is `0x00` if the link type is Top and `0x40` if the link type is Left. The second byte is `0` (since the second bit in color coding has a minimum value of `1`, then the value `0` serves as an identifier that we have a link in front of us).
-
-## Lossy compression:
-The algorithm provides for the possibility of compressing data that encodes the colors of pixels with certain losses in quality. The user can specify a parameter that specifies the allowable error (distance between colors) of the encoded color. The value of the parameter can be from `0` (lossless) to `255` (the picture will no longer be recognizable). Default value: `2`.
+## Compression
+Image compression is achieved by `simplifying the color palette`, `packing a series of identical colors` into one block, `skipping unchanged areas` on the screen (achieved by comparing the current frame and the previous one, then the offset block specifies the place from which to start filling the pixels) and `skipping colors` that differ from each other by a specified number. This number is specified through a special argument when connecting to the server part of the program. This allows the user to simultaneously select the desired image quality and reduce the size of the transmitted packet.

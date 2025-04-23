@@ -1,46 +1,138 @@
 
-#include "../include/Server.h"
+#include <thread>
+#include <string.h>
+#include <stdlib.h>
+#include <macro.hpp>
+#include <net.hpp>
+#include <display.hpp>
+#include <codec.hpp>
+#include <server.hpp>
 
-int main(int argc, char *argv[]) {
-	if (argc < 2) {
-		std::cout << readme << std::endl;
-		return 0;
+
+
+#include <netinet/in.h>
+namespace server {
+namespace {
+
+display::tpl *disp = nullptr;
+bool alive;
+
+int
+session_type(void) {
+#if OS != LINUX
+	return 0;
+#else
+	const char *env = ::getenv("XDG_SESSION_TYPE");
+	RET_IF(::strcmp("wayland", env) == 0, WAYLAND);
+	return ::strcmp("x11", env) == 0 ? X11 : TTY;
+#endif
+}
+
+void
+events(void) {
+	byte *buff = new byte[display::emsg];
+	display::events elist;
+	net::status ret;
+	DIE(!buff);
+	
+	while (alive) {
+		ret = net::recv(buff, display::emsg);
+		BREAK_IF(ret == net::status::ERROR);
+
+		if (ret == net::status::EMPTY) {
+			YIELD_NEXT;
+		}
+		elist.set(buff);
+		disp->set(elist);
 	}
 
-	Server::args = Args(argc, argv);
+	alive = false;
+	delete[] buff;
+}
 
-	if (Server::args.get().port < 1) {
-		std::cout << "Error: Invalid port number.\n";
-		return 1;
+}
+
+int
+start(const args &args) {
+	const int port = args.num("port");
+	if (port < 1) {
+		INFO(ERR"Incorrect port number");
+		return 3;
 	}
 
-	std::string tmp = Server::args.get().xauth, cmd;
-	Server::tcp = Net(Server::args.get().port,
-					  Server::args.get().ip,  true);
-	if (tmp.empty()) {
-		char *env = getenv("XAUTHORITY");
-		ERR(!env, "Argument `xauth` was not set");
-		tmp = std::string(env);
-	}
-	putenv(strdup((std::string("XAUTHORITY=") + tmp).c_str()));
-
-	tmp = Server::args.get().display;
-	if (tmp.empty()) {
-		char *env = getenv("DISPLAY");
-		ERR(!env, "Argument `display` was not set");
-		tmp = std::string(env);
-	}
-	putenv(strdup((std::string("DISPLAY=") + tmp).c_str()));
-
-	while (Server::work) {
-		NEXT_IF(!Server::tcp.accept());
-
-		assert(Server::x11 = new X11);
-		Actions::start();
-
-		Server::tcp.close();
-		delete Server::x11;
+	if (!net::start(args["bind-ip"], port, args.mode())) {
+		INFO(ERR"Can't start TCP server");
+		net::close();
+		return 4;
 	}
 
-	Server::tcp.closeAll();
+	int code = 0;
+	for (net::hello usr;;) {
+		net::kick();
+		if (!net::connection() || !net::recv(usr)) {
+			YIELD_NEXT;
+		}
+
+		usr.delta = std::min(byte{0xFE}, usr.delta);
+		disp = display::get(session_type());
+		if (!disp) {
+			INFO(ERR"Unsupported screen session type");
+			code = 5;
+			break;
+		}
+		if (!disp->init()) {
+			INFO(WARN"Can't init screen session");
+			disp->close();
+			delete disp;
+			continue;
+		}
+
+		net::screen res;
+		std::tie(res.width, res.height) = disp->res();
+		if (!net::send(res)) {
+			disp->close();
+			delete disp;
+			continue;
+		}
+
+		alive = true;
+		std::thread keys(events);
+		DIE(!keys.joinable());
+
+		codec::init(res.width, res.height, usr.delta);
+		codec::alloc();
+		byte *buff = new byte[codec::max() + 8];
+		DIE(!buff);
+		
+		auto &size = *reinterpret_cast<uint64_t *>(buff);
+		byte *msg = buff + 8;
+		display::pixs pixs;
+		net::status status;
+
+		while (alive) {
+			disp->refresh(pixs);
+			if (!codec::get(pixs, msg, size)) {
+				YIELD_NEXT;
+			}
+			status = net::send(buff, size + 8);
+			BREAK_IF(status != net::status::OK);
+		}
+
+		alive = false;
+		keys.join();
+		codec::free();
+		disp->close();
+		delete disp;
+		delete[] buff;
+	}
+
+	net::close();
+	if (disp) {
+		disp->close();
+		delete disp;
+	}
+
+	return code;
+}
+
 }
