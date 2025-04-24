@@ -22,7 +22,7 @@ screen(void) {
 		status = net::recv(reinterpret_cast<byte *>(&size), 8);
 		BREAK_IF(status == net::status::ERROR);
 		if (status == net::status::EMPTY || size < 2) {
-			YIELD_NEXT;
+			WAIT_NEXT;
 		}
 
 		status = net::recv(buff, size);
@@ -67,9 +67,10 @@ start(const args &args) {
 	}
 
 	int num = args.num("color-distance");
+	int fps = args.num("fps");
 	net::hello msg = {
 		static_cast<byte>(num == -1 ? 2 : std::min(254, num)),
-		byte{0}
+		static_cast<byte>(fps  < 1 ? 50 : std::min(255, fps))
 	};
 	if (!net::send(msg)) {
 		INFO(ERR"Can't send 'hello' message");
@@ -119,7 +120,7 @@ start(const args &args) {
 		BREAK_IF(flags.second);
 
 		if (!flags.first) {
-			YIELD_NEXT;
+			WAIT_NEXT;
 		}
 		elist.pack(buff);
 		status = net::send(buff, display::emsg);

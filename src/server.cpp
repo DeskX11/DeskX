@@ -1,4 +1,5 @@
 
+#include <chrono>
 #include <thread>
 #include <string.h>
 #include <stdlib.h>
@@ -8,9 +9,6 @@
 #include <codec.hpp>
 #include <server.hpp>
 
-
-
-#include <netinet/in.h>
 namespace server {
 namespace {
 
@@ -40,7 +38,7 @@ events(void) {
 		BREAK_IF(ret == net::status::ERROR);
 
 		if (ret == net::status::EMPTY) {
-			YIELD_NEXT;
+			WAIT_NEXT;
 		}
 		elist.set(buff);
 		disp->set(elist);
@@ -70,10 +68,11 @@ start(const args &args) {
 	for (net::hello usr;;) {
 		net::kick();
 		if (!net::connection() || !net::recv(usr)) {
-			YIELD_NEXT;
+			WAIT_NEXT;
 		}
 
 		usr.delta = std::min(byte{0xFE}, usr.delta);
+		usr.fps   = std::max(byte{0x01}, usr.fps);
 		disp = display::get(session_type());
 		if (!disp) {
 			INFO(ERR"Unsupported screen session type");
@@ -105,14 +104,23 @@ start(const args &args) {
 		DIE(!buff);
 		
 		auto &size = *reinterpret_cast<uint64_t *>(buff);
+		std::chrono::milliseconds delay(1000 / usr.fps);
+		auto now = NOW_MS, prev = now;
 		byte *msg = buff + 8;
 		display::pixs pixs;
 		net::status status;
 
 		while (alive) {
+			now = NOW_MS;
+			if (now - prev < delay) {
+				prev = delay - (now - prev);
+				std::this_thread::sleep_for(prev);
+			}
+
+			prev = now;
 			disp->refresh(pixs);
 			if (!codec::get(pixs, msg, size)) {
-				YIELD_NEXT;
+				WAIT_NEXT;
 			}
 			status = net::send(buff, size + 8);
 			BREAK_IF(status != net::status::OK);

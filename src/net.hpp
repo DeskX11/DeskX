@@ -7,7 +7,7 @@
 namespace net {
 
 struct hello {
-	byte delta, palette;
+	byte delta, fps;
 };
 
 struct screen {

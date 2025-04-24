@@ -2,6 +2,7 @@
 #ifndef DESKX_MACRO_HPP
 #define DESKX_MACRO_HPP
 
+#include <chrono>
 #include <iostream>
 #include <unistd.h>
 
@@ -17,7 +18,8 @@ typedef unsigned char byte;
 				"|__/ |___ .__/ |  \\  / \\\n" \
 				"                    /   \\  https://github.com/DeskX11/DeskX\n\n"
 
-#define YIELD_NEXT		  std::this_thread::yield(); continue
+#define NOW_MS 			  std::chrono::system_clock::now().time_since_epoch()
+#define WAIT_NEXT		  std::this_thread::sleep_for(std::chrono::milliseconds(1)); continue
 #define RET_IF(cond, ...) if ((cond)) return __VA_ARGS__
 #define BREAK_IF(cond)	  if ((cond)) break
 #define NEXT_IF(cond)	  if ((cond)) continue

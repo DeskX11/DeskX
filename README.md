@@ -86,6 +86,7 @@ Client's options:
 	--ip			IP address of the server
 	--port			Port of the server
 	--color-distance	Compression range (1-255) (default: 2)
+	--fps			Frame limit (default: 50)
 
 Examples:
 	./deskx client --ip=192.168.0.1 --port=1742 --color-distance=2
