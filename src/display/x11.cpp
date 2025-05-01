@@ -162,9 +162,10 @@ x11::init(void) {
 	disp = ::XOpenDisplay(nullptr);
 	RET_IF(!disp, false);
 
+	const int depth = DefaultDepth(disp, ::XDefaultScreen(disp));
 	root = DefaultRootWindow(disp);
 	::XGetWindowAttributes(disp, root, &attrs);
-	img = ::XShmCreateImage(disp, DefaultVisual(disp, 0), 24, ZPixmap, nullptr, &shm,
+	img = ::XShmCreateImage(disp, DefaultVisual(disp, 0), depth, ZPixmap, nullptr, &shm,
 							attrs.width, attrs.height);
 	DIE(!img);
 
@@ -204,6 +205,7 @@ x11::refresh(pixs &arg) {
 	::XShmGetImage(disp, root, img, 0, 0, AllPlanes);
 	arg.ptr = reinterpret_cast<byte *>(img->data);
 	arg.shift = 4;
+	arg.type  = RGBA;
 }
 
 void

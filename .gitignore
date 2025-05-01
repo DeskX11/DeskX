@@ -28,15 +28,16 @@
 
 # Executables
 *.exe
+*.php
 *.out
 *.app
 deskx*
-keys
 
 .DS_Store
 *.deskx
 *.zip
+*.txt
 
 # Debian packages
-deb/deskx-*
+deb/deskx*
 *.deb

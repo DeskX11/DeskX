@@ -1,5 +1,6 @@
 
 #include <display.hpp>
+#include <display/osx/osxcast.h>
 
 namespace display {
 

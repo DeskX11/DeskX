@@ -4,7 +4,7 @@
 #include <codec/rgb.hpp>
 #include <codec/axis.hpp>
 
-#define RGB  byte{1}
+#define LINE byte{1}
 #define AXIS byte{0}
 
 namespace codec {
@@ -18,14 +18,14 @@ byte delta;
 
 byte
 is(const byte s) {
-	return (s & 0x80) == 0x80 ? RGB : AXIS;
+	return (s & 0x80) == 0x80 ? LINE : AXIS;
 }
 
 }
 
 void
 init(const size_t &x, const size_t &y, const byte num) {
-	DIE(x > 0x1FFF || y > 0x1FFF);
+	DIE(x > SCR_X_MAX || y > SCR_Y_MAX);
 	start = true;
 	delta = num;
 	pixnum = x * y;
@@ -157,7 +157,7 @@ set(byte *win, byte *buff, const uint64_t &size) {
 		tmp = rgb::decode(width, 4, &buff, &win);
 		num += tmp;
 		if (!tmp) {
-			INFO(WARN"RGB is broken, skip frame");
+			INFO(WARN"Line is broken, skip frame");
 			return;
 		}
 	}

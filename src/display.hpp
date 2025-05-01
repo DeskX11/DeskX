@@ -17,6 +17,7 @@ using xy = std::pair<uint16_t, uint16_t>;
 struct pixs {
 	byte *ptr = nullptr;
 	size_t shift = 0;
+	byte type = RGBA;
 
 	void
 	next(void);

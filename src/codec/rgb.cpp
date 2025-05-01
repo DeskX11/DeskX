@@ -61,7 +61,7 @@ big(const byte *ptr, uint32_t &color, uint16_t &size) {
 		 &b = *(&r + 2);
 	r = ((val & 0x3C00) >> 10) * 17;
 	g = ((val & 0x3E0)  >>  5) *  8;
-	b =  (val & 0x1F) * 8;
+	b =  (val & 0x1F)		   *  8;
 	return 4;
 }
 

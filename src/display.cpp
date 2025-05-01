@@ -13,9 +13,9 @@ get(const byte type) {
 	default:	  return nullptr;
 	}
 #elif OS == OSX
-	return nullptr;
+	return reinterpret_cast<tpl *>(new osx);
 #elif OS == WIN
-	return nullptr;
+	return reinterpret_cast<tpl *>(new win);
 #else
 	return nullptr;
 #endif

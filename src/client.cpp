@@ -21,9 +21,7 @@ screen(void) {
 	while (alive) {
 		status = net::recv(reinterpret_cast<byte *>(&size), 8);
 		BREAK_IF(status == net::status::ERROR);
-		if (status == net::status::EMPTY || size < 2) {
-			WAIT_NEXT;
-		}
+		NEXT_DELAY(status == net::status::EMPTY || size < 2);
 
 		status = net::recv(buff, size);
 		if (status != net::status::OK) {
@@ -84,7 +82,7 @@ start(const args &args) {
 		net::close();
 		return 7;
 	}
-	if (srv.width < 640 || srv.height < 480) {
+	if (srv.width < SCR_X_MIN || srv.height < SCR_Y_MIN) {
 		INFO(ERR"Screen resolution is too small");
 		net::close();
 		return 8;
@@ -118,10 +116,7 @@ start(const args &args) {
 	while (alive) {
 		flags = gui::events(elist);
 		BREAK_IF(flags.second);
-
-		if (!flags.first) {
-			WAIT_NEXT;
-		}
+		NEXT_DELAY(!flags.first);
 		elist.pack(buff);
 		status = net::send(buff, display::emsg);
 		BREAK_IF(status != net::status::OK);
