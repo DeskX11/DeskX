@@ -18,7 +18,8 @@ export XDG_SESSION_TYPE=x11
 After setting the variables (for more information you can read xauth, Xsecurity and xhost man pages), you can start the server mode in the same way as in the example above: `./deskx server --port=1489`.
 
 #### Linux (Wayland)
-Under development.
+Under these conditions, it is enough to specify the mandatory argument `--port=` to start working. Example: `./deskx server --port=1489`. You can also use other server-side arguments that were listed above. You can also specify which IP address of the computer you want to use via the `--bind-ip=` argument, if you want to use all available addresses, do not specify this argument. Example: `./deskx server --port=1489 --bind-ip=127.0.0.1`. After launching, you need to give the program permission to broadcast the screen and control the keyboard and mouse as in the screenshot below.
+<img src="/docs/imgs/wl.png">
 
 #### macOS
 Under development.

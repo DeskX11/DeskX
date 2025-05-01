@@ -187,7 +187,10 @@ wayland::init(void) {
 void
 wayland::close(void) {
 	RET_IF(!portal);
-	delete pwr;
+	if (pwr) {
+		delete pwr;
+		pwr = nullptr;
+	}
 	if (session) {
 		::xdp_session_close(session);
 	}

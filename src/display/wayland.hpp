@@ -12,7 +12,7 @@ protected:
 	pipewire::screen scr;
 	XdpSession *session;
 	XdpPortal *portal;
-	pipewire *pwr;
+	pipewire *pwr = nullptr;
 	uint32_t node;
 
 public:
