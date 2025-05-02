@@ -17,7 +17,7 @@ usage(const int num) {
 	case 2:	 return "Usage: ./deskx server [options]\n" + sopts;
 	default: return "Usage: ./deskx [mode] [options]\nModes:\n\tclient\t\t\tMode for "
 					"controlling a remote computer\n\tserver\t\t\tMode for the computer"
-					" to be controlled\n\n" + copts + "\n" + sopts + "\nExamples:\n\t"
+					" to be controlled\n\n" + copts + "\n" + sopts + "\nExample:\n\t"
 					"./deskx client --ip=192.168.0.1 --port=1742 --color-distance=2\n";
 	}
 }

@@ -126,8 +126,8 @@ finish(GObject *source, GAsyncResult *res, void *data) {
 	}
 
 	streams = ::xdp_session_get_streams(ptr->session);
-	g_variant_iter_init(&it, streams);
-	g_variant_iter_loop(&it, "(u@a{sv})", &ptr->node, &props);
+	::g_variant_iter_init(&it, streams);
+	::g_variant_iter_loop(&it, "(u@a{sv})", &ptr->node, &props);
 }
 
 void
@@ -213,7 +213,7 @@ void
 wayland::set(const events &arg) {
 	const double x = std::min(static_cast<int>(arg.mouse.first),  scr.width  - 1);
 	const double y = std::min(static_cast<int>(arg.mouse.second), scr.height - 1);
-	std::map<uint32_t, int>::iterator it;
+	std::map<uint32_t, uint32_t>::iterator it;
 	uint32_t key;
 
 	::xdp_session_pointer_position(session, node, x, y);
@@ -222,7 +222,7 @@ wayland::set(const events &arg) {
 		key = arg.buttons[i].key;
 
 		if (arg.buttons[i].type <= display::keys::types::MOUSE_DOWN) {
-			switch (arg.buttons[i].key) {
+			switch (key) {
 			case 1:	 key = 0x110;
 					 break;
 			case 2:	 key = 0x112;
@@ -237,7 +237,7 @@ wayland::set(const events &arg) {
 			continue;
 		}
 
-		it = keymap.find(arg.buttons[i].key);
+		it = keymap.find(key);
 		if (it != keymap.end()) {
 			key = it->second;
 		}
