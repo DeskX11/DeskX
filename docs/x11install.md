@@ -52,4 +52,4 @@ cd DeskX
 make
 sudo startxfce4 &
 ```
-Now everything is ready to launch DeskX. All that remains is to create the necessary environment, you can read about it [here](https://github.com/DeskX11/DeskX/blob/main/docs/howtouse.md).
+Now everything is ready to launch DeskX. All that remains is to create the necessary environment, you can read about it [here](/docs/howtouse.md).
