@@ -9,10 +9,9 @@
 # how to use:
 # it is supposed to run from the makefile, but
 # nothing prevents you from running it manually with
-# script.sh "$1" "$2"
+# script.sh "$1"
 # where
-# "$1" is 'client' or 'server'
-# "$2" is deskx version
+# "$1" is deskx version
 
 set -e
 set -u
@@ -21,12 +20,10 @@ set -u
 script_location="$(pwd)"
 script_filename="$(basename $0)"
 project_location="./.."
-client_filename='dxc'
-server_filename='dxs'
-deskx_version="${2}"
+deskx_version="${1}"
 package_version='1'
 fhs="usr/bin"
-package_filename="deskx-${1:-}_${deskx_version}-${package_version}_amd64"
+package_filename="deskx_${deskx_version}-${package_version}_amd64"
 build_directory="${script_location}/${package_filename}"
 
 # stop if the script is run from the wrong directory
@@ -43,52 +40,47 @@ command -v dpkg-deb 1>/dev/null ||
 dpkg -s libx11-dev 1>/dev/null
 dpkg -s libxtst-dev 1>/dev/null
 dpkg -s libxext-dev 1>/dev/null
+dpkg -s libsdl2-dev 1>/dev/null
+dpkg -s libportal-dev 1>/dev/null
+dpkg -s libpipewire-0.3-dev 1>/dev/null
 dpkg -s g++ 1>/dev/null
 dpkg -s make 1>/dev/null
 
-# stop if the first argument is wrong
-[[ "${1:-}" = 'client' ]] || [[ "${1:-}" = 'server' ]] ||
-    (echo "You need to provide client or server as the first argument"; exit 1)
-
-function clean_build_directory()
-{
-    rm -rf "${script_location}/"deskx-{client,server}_*
+function clean_build_directory() {
+    rm -rf "${script_location}/"deskx_*
 }
 
 # create build folder and compile required binary
 clean_build_directory
 cd "$project_location"
-make "$1"
+make
 mkdir -p "${build_directory}/"{DEBIAN,$fhs}
-cd "$script_location"
+cd "$build_directory"
 
 # manifest declaration
-cat << EOF > ${build_directory}/DEBIAN/control
-Package: deskx-${1}
+cat << EOF > ./DEBIAN/control
+Package: deskx
 Version: ${deskx_version}
 Homepage: https://github.com/DeskX11/DeskX
 Architecture: amd64
 Maintainer: mrrva <no email>
-Description: performance-oriented remote control of a computer, ${1}-side
+Description: performance-oriented remote control of a computer
  (it is not recommended to use it over the Internet without an encrypted
  tunnel, for example can use: SSH with port forwarding).
 Depends: libx11-dev,
          libxtst-dev,
-         libxext-dev
+         libxext-dev,
+         libsdl2-dev,
+         libportal-dev,
+         libpipewire-0.3-dev
 
 EOF
 
 # compile package
-[[ "$1" = 'client' ]] &&
-    mv "${project_location}/${client_filename}" "${build_directory}/${fhs}/" &&
-    dpkg-deb --build --root-owner-group ${package_filename} &&
-    mv "${package_filename}.deb" "$project_location"
-
-[[ "$1" = 'server' ]] &&
-    mv "${project_location}/${server_filename}" "${build_directory}/${fhs}/" &&
-    dpkg-deb --build --root-owner-group ${package_filename} &&
-    mv "${package_filename}.deb" "$project_location"
-
+cd ..
+mv "${project_location}/deskx" "${build_directory}/${fhs}/"
+dpkg-deb --build --root-owner-group ${package_filename}
+mv "${package_filename}.deb" "$project_location"
 
 clean_build_directory
 exit 0

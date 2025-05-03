@@ -9,7 +9,7 @@ For different operating systems, starting the server part may differ from each o
 Under these conditions, it is enough to specify the mandatory argument `--port=` to start working. Example: `./deskx server --port=1489`. You can also use other server-side arguments that were listed above. You can also specify which IP address of the computer you want to use via the `--bind-ip=` argument, if you want to use all available addresses, do not specify this argument. Example: `./deskx server --port=1489 --bind-ip=127.0.0.1`.
 
 #### Linux (X11, Running via ssh)
-First, you need to install all the necessary components and run the window manager, you will find an example of this at [the link](https://github.com/DeskX11/DeskX/blob/main/doc/x11install.md). After installing and running the window manager, you need to set a number of variables that are necessary to run DeskX.
+First, you need to install all the necessary components and run the window manager, you will find an example of this at [the link](/doc/x11install.md). After installing and running the window manager, you need to set a number of variables that are necessary to run DeskX.
 ```bash
 export XAUTHORITY=../.Xauthority #Path to .Xauthority file
 export DISPLAY=:0 #Screen number, usually :0 or :0.0

@@ -18,22 +18,19 @@ Universal light and fast program for remote control of a computer
 </p>
 
 ## About
-The project was created for its own use within the home network (you can use DeskX over the internet using port forwarding via ssh). I have a server at home with a large number of Linux virtual machines to which I needed remote access. All remote software I've tried had their problems - e.g., scrolling lags in the browser, dragging windows, etc. For this reason, a project was created focused on the fastest possible data transfer without paying much attention to image quality.
+The project was created for its own use within the home network (you can use DeskX over the internet using port forwarding via ssh). I have a server at home with a large number of Linux virtual machines to which I needed remote access. All remote software I've tried had their problems - e.g., scrolling lags in the browser, dragging windows, etc. For this reason, a project was created that focused on universal, maximum-speed data transfer, without paying special attention to image quality.
 
-## Project versions
-The current version of DeskX 2.x.x is in development. If you want to use a more stable version, you can download it in the <a href="https://github.com/DeskX11/DeskX/releases">releases section</a>.
-
-## Functionality
-* Own compression algorithm that can be adjusted manually (<a href="./docs/codec.md">read more</a>)
+## Peculiarities
+* Own compression algorithm that can be adjusted manually (<a href="/docs/codec.md">read more</a>)
 * Client and server mode in one program
-* Fullscreen or windowed mode
-* Linux & macOS & Windows support
+* Fullscreen or windowed mode (auto scale if server's screen is bigger)
+* Linux (X11 / Wayland) & macOS & Windows support
 
 ## An example of working with compression
-<p align="center"><img src="./docs/imgs/example.png"></p>
+<p align="center"><img src="/docs/imgs/example.png"></p>
 
 ## Screen resolution
-Controlling screen resolution and picture sizes is entirely dependent on the server-side resolution settings. To change it, use the standard utility. An update will be released later with automatic permission change.
+Controlling screen resolution and picture sizes is entirely dependent on the server-side resolution settings. To change it, use the standard utility. An update will be released later with automatic permission change. The client window will automatically scale if the resolution on the server is larger than the client screen.
 
 ## Getting started
 * Build it
@@ -70,7 +67,7 @@ sudo apt install libx11-dev libxtst-dev libxext-dev libportal-dev libpipewire-0.
 	libsdl2-dev
 git clone https://github.com/DeskX11/DeskX/
 cd DeskX
-make deb
+make dpkg
 # After that, you will have the client and server .deb packages in the project's
 # root folder.
 ```
@@ -103,9 +100,17 @@ Examples:
 ```
 
 ## How to get best performance?
-Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--color-distance=` parameter up. Also, the speed of the transmission channel plays an important role; it is recommended to use a router with a gigabit LAN. As a last resort, you can also try to disable unnecessary effects such as window shadows.
+Fast data transfer depends on two factors: the size of the transmitted packet and the transfer rate. To reduce the size of the batch, you can try changing the `--color-distance=` parameter up. You can also make a single-color desktop wallpaper, remove shadows on windows, and so on.
 
-## Requirements
-* OS Linux / macOS / Windows
+## Requirements for compilation.
+#### Linux
 * `g++ make`
 * `libx11-dev libxtst-dev libxext-dev libsdl2-dev libportal-dev libpipewire-0.3-dev`
+
+#### MacOS
+* `g++ make`
+* `libsdl2`
+
+#### Windows
+* `Cygwin MinGW`
+* `g++ make libsdl2`

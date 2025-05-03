@@ -30,7 +30,7 @@ Axial offset structure (the numbers represent the number of bits used):
 One byte for describing a color contains the number of repetitions of the color that is on the row above. This means that the color that is on the Y axis directly above this pixel will be used to paint the specified number of pixels in the row. The maximum number of `repetitions is 31`.
 
 #### Color data (16 bit)
-Two bytes for describing a color contains the number of repetitions and the color number from the [palette of the most popular colors](https://github.com/DeskX11/DeskX/tree/main/src/codec/palette.hpp). The maximum number of repetitions that such a byte `can contain is 31`.
+Two bytes for describing a color contains the number of repetitions and the color number from the [palette of the most popular colors](/src/codec/palette.hpp). The maximum number of repetitions that such a byte `can contain is 31`.
 
 #### Color data (24 bit)
 This data block contains the number of repetitions (up to `127 pixels per row`) and the color the pixels will be painted in. The color is encoded in a `14-bit palette`.
