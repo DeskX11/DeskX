@@ -21,6 +21,9 @@ struct pixs {
 
 	void
 	next(void);
+
+	void
+	next(const size_t &);
 };
 
 struct keys {

@@ -14,6 +14,10 @@ struct screen {
 	uint16_t width, height;
 };
 
+struct skipxy {
+	byte x = 0, y = 0;
+};
+
 enum status {
 	OK, EMPTY, ERROR
 };

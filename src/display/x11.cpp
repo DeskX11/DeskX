@@ -219,8 +219,7 @@ x11::set(const events &arg) {
 	for (size_t i = 0; i < MAXKEYS; i++) {
 		BREAK_IF(arg.buttons[i].type == display::keys::types::NO_TYPE);
 		key = arg.buttons[i].key;
-
-		it = keymap.find(arg.buttons[i].key);
+		it = keymap.find(key);
 		if (it != keymap.end()) {
 			key = it->second;
 		}

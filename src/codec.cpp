@@ -10,11 +10,11 @@
 namespace codec {
 namespace {
 
-size_t width, height, pixnum;
+size_t width, height, pixnum, xmax;
+byte delta, skipx, skipy;
 byte *prev = nullptr;
 byte *next = nullptr;
 bool start;
-byte delta;
 
 byte
 is(const byte s) {
@@ -31,6 +31,14 @@ init(const size_t &x, const size_t &y, const byte num) {
 	pixnum = x * y;
 	width  = x;
 	height = y;
+	xmax = x;
+}
+
+void
+skip(const byte x, const byte y) {
+	xmax = width / (x + 1);
+	skipx = x;
+	skipy = y;
 }
 
 void
@@ -59,7 +67,7 @@ max(void) {
 
 bool
 get(display::pixs &pixs, byte *buff, uint64_t &size) {
-	size_t shift, skip = 0;
+	size_t shift, skip = 0, x = 0;
 	bool flag = false;
 	rgb color, tmp;
 	axis xy;
@@ -69,27 +77,39 @@ get(display::pixs &pixs, byte *buff, uint64_t &size) {
 	byte *pbuff = prev;
 	byte *nbuff = next;
 
-	auto step = [&pixs, &pbuff, &nbuff](void) {
-		pixs.next();
+	auto step = [&pixs, &pbuff, &nbuff, &x](size_t &num) {
+		for (byte i = 0; i <= skipx; i++) {
+			pixs.next();
+			num++;
+			x++;
+		}
+
 		pbuff += 3;
 		nbuff += 3;
+		RET_IF(x < width);
+
+		x = 0;
+		for (byte i = 0; i < skipy; i++) {
+			pixs.next(width);
+			num += width;
+		}
 	};
 
-	step();
-	for (size_t i = 1; i < pixnum; i++, step()) {
+	step(shift);
+	for (size_t i = 1 + skipx; i < pixnum; step(i)) {
 		::memcpy(nbuff, pixs.ptr, 3);
 		if (::memcmp(pbuff, pixs.ptr, 3) == 0 && !start) {
 			skip++;
 			continue;
 		}
 		if (skip) {
-			shift = color.encode(flag, buff);
+			shift = color.encode(skipy ? false : flag, buff);
 			size += shift;
 			buff += shift;
 			flag  = false;
 
-			shift = skip / width;
-			skip -= shift * width;
+			shift = skip  / xmax;
+			skip -= shift * xmax;
 			if (shift) {
 				xy.set(shift, axis::type::Y);
 				shift = xy.encode(buff);
@@ -122,7 +142,7 @@ get(display::pixs &pixs, byte *buff, uint64_t &size) {
 			continue;
 		}
 		else {
-			shift = color.encode(flag, buff);
+			shift = color.encode(skipy ? false : flag, buff);
 			size += shift;
 			buff += shift;
 			color = tmp;
@@ -133,7 +153,7 @@ get(display::pixs &pixs, byte *buff, uint64_t &size) {
 		}
 	}
 	if (color.size() > 1) {
-		shift = color.encode(flag, buff);
+		shift = color.encode(skipy ? false : flag, buff);
 		size += shift;
 	}
 

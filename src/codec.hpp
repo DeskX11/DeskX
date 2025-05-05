@@ -11,6 +11,9 @@ void
 init(const size_t &, const size_t &, const byte);
 
 void
+skip(const byte, const byte);
+
+void
 alloc(void);
 
 void

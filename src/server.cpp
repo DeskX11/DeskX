@@ -82,15 +82,17 @@ start(const args &args) {
 		usr.fps   = std::max(byte{0x01}, usr.fps);
 		net::screen res;
 		std::tie(res.width, res.height) = disp->res();
-		if (!net::send(res)) {
-			continue;
-		}
+		NEXT_IF(!net::send(res));
+
+		net::skipxy skip;
+		NEXT_IF(!net::recv(skip));
 
 		alive = true;
 		std::thread keys(events);
 		DIE(!keys.joinable());
 
 		codec::init(res.width, res.height, usr.delta);
+		codec::skip(skip.x, skip.y);
 		codec::alloc();
 		byte *buff = new byte[codec::max() + 8];
 		byte *msg = buff + 8;

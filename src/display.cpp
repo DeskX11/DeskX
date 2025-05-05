@@ -27,6 +27,11 @@ pixs::next(void) {
 }
 
 void
+pixs::next(const size_t &num) {
+	ptr += shift * num;
+}
+
+void
 events::clear(void) {
 	mouse = std::make_pair(uint16_t{0}, uint16_t{0});
 	for (size_t i = 0; i < MAXKEYS; i++) {

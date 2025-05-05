@@ -1,5 +1,6 @@
 
 #include <thread>
+#include <cmath>
 #include <macro.hpp>
 #include <net.hpp>
 #include <codec.hpp>
@@ -87,23 +88,46 @@ start(const args &args) {
 		net::close();
 		return 8;
 	}
-
-	windowbuff = gui::init(srv.width, srv.height);
-	std::thread thr;
-	if (!windowbuff) {
-		INFO(ERR"Can't create new window");
+	if (!gui::init()) {
+		INFO(ERR"Can't init GUI module");
 		net::close();
 		return 9;
 	}
 
+	double x = gui::width(), y = gui::height();
+	net::skipxy skip;
+	if (x < srv.width || y < srv.height) {
+		INFO(WARN"Scaling enabled, distortion may occur");
+		skip.x = x == srv.width  ? 1 : std::ceil(srv.width  / x);
+		skip.y = y == srv.height ? 1 : std::ceil(srv.height / y);
+		srv.width  = srv.width  / skip.x;
+		srv.height = srv.height / skip.y;
+		skip.x--;
+		skip.y--;
+	}
+	if (!net::send(skip)) {
+		INFO(ERR"Can't send 'skip' message");
+		net::close();
+		return 6;
+	}
+
+	skip.x++;
+	skip.y++;
+	windowbuff = gui::window(srv.width, srv.height);
+	if (!windowbuff) {
+		INFO(ERR"Can't create new window");
+		net::close();
+		return 10;
+	}
+
 	codec::init(srv.width, srv.height, msg.delta);
 	alive = true;
-	thr = std::thread(screen);
+	std::thread thr(screen);
 	if (!thr.joinable()) {
 		INFO(ERR"Can't start screen thread");
 		gui::close();
 		net::close();
-		return 10;
+		return 11;
 	}
 
 	byte *buff = new byte[display::emsg];
@@ -117,6 +141,9 @@ start(const args &args) {
 		flags = gui::events(elist);
 		BREAK_IF(flags.second);
 		NEXT_DELAY(!flags.first);
+
+		elist.mouse.first  *= skip.x;
+		elist.mouse.second *= skip.y;
 		elist.pack(buff);
 		status = net::send(buff, display::emsg);
 		BREAK_IF(status != net::status::OK);

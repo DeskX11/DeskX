@@ -7,8 +7,17 @@
 namespace client {
 namespace gui {
 
+bool
+init(void);
+
+const size_t &
+width(void);
+
+const size_t &
+height(void);
+
 byte *
-init(const size_t &, const size_t &);
+window(const size_t &, const size_t &);
 
 void
 close(void);

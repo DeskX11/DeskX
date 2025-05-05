@@ -9,33 +9,52 @@ namespace {
 SDL_Window *win = nullptr;
 SDL_Surface *surface = nullptr;
 int xp = 0, yp = 0;
+size_t xmax, ymax;
 
 }
 
-byte *
-init(const size_t &width, const size_t &height) {
-	RET_IF(::SDL_Init(SDL_INIT_VIDEO) < 0, nullptr);
+bool
+init(void) {
+	RET_IF(::SDL_Init(SDL_INIT_VIDEO) < 0, false);
 
 	SDL_DisplayMode res;
 	::SDL_GetCurrentDisplayMode(0, &res);
+	xmax = res.w;
+	ymax = res.h;
+	return xmax && ymax;
+}
+
+byte *
+window(const size_t &width, const size_t &height) {
+	RET_IF(!xmax || !ymax, nullptr);
 	INFO(NOTE"New window with resolution " + std::to_string(width) + "x"
 										   + std::to_string(height));
-	auto mode = res.w == width && res.h == height ? SDL_WINDOW_FULLSCREEN_DESKTOP
-												  : SDL_WINDOW_SHOWN;
-	win = ::SDL_CreateWindow("DeskX",  SDL_WINDOWPOS_CENTERED,
-									   SDL_WINDOWPOS_CENTERED,
-									   width, height, mode);
-	DIE(!win);
+	auto mode = xmax == width && ymax == height ? SDL_WINDOW_FULLSCREEN_DESKTOP
+												: SDL_WINDOW_SHOWN;
+	win = ::SDL_CreateWindow("DeskX", SDL_WINDOWPOS_CENTERED,
+									  SDL_WINDOWPOS_CENTERED,
+									  width, height, mode);
+	RET_IF(!win, nullptr);
 	surface = ::SDL_GetWindowSurface(win);
-	DIE(!surface);
-	return reinterpret_cast<byte *>(surface->pixels);
+	return !surface ? nullptr : reinterpret_cast<byte *>(surface->pixels);
+}
+
+const size_t &
+width(void) {
+	return xmax;
+}
+
+const size_t &
+height(void) {
+	return ymax;
 }
 
 void
 close(void) {
-	RET_IF(!win);
-	::SDL_FreeSurface(surface);
-	::SDL_DestroyWindow(win);
+	if (xmax && ymax) {
+		::SDL_FreeSurface(surface);
+		::SDL_DestroyWindow(win);
+	}
 	::SDL_Quit();
 	win = nullptr;
 }
