@@ -172,7 +172,7 @@ wayland::init(void) {
 
 	session = arg.session;
 	node = arg.node;
-	pwr = new pipewire(arg.fd);
+	pwr = new pipewire(arg.fd, arg.node);
 	DIE(!pwr);
 
 	::g_main_context_wakeup(nullptr);

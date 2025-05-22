@@ -41,11 +41,7 @@ info(void *data, uint32_t id, const spa_pod *param) {
 	pipewire::cbdata *ptr = reinterpret_cast<pipewire::cbdata *>(data);
 	spa_video_info format;
 
-	RET_IF(ptr->error);
-	if (param == nullptr || id != SPA_PARAM_Format) {
-		INFO(WARN"Screen's info call failed");
-		return;
-	}
+	RET_IF(ptr->error || (param == nullptr || id != SPA_PARAM_Format));
 	if (::spa_format_parse(param, &format.media_type,
 						   &format.media_subtype) < 0) {
 		INFO(WARN"Can't get screen format info");
@@ -77,8 +73,8 @@ info(void *data, uint32_t id, const spa_pod *param) {
 void
 state(void *data, pw_stream_state old, pw_stream_state state, const char *error) {
 	pipewire::cbdata *ptr = reinterpret_cast<pipewire::cbdata *>(data);
-	RET_IF(!ptr->error && !error);
-	INFO(WARN"Pipewire status: " + std::string(pw_stream_state_as_string(state)) +
+	RET_IF(!error);
+	INFO(WARN"Pipewire status: " + std::string(::pw_stream_state_as_string(state)) +
 			 ", details: " + (error ? std::string(error) : std::string()));
 	ptr->error = true;
 }
@@ -91,7 +87,7 @@ const pw_stream_events cbs = {
 
 }
 
-pipewire::pipewire(const int &fd) {
+pipewire::pipewire(const int &fd, const uint32_t &nodeid) {
 	RET_IF(fd < 0);
 
 	pw_init(0, nullptr);
@@ -102,6 +98,7 @@ pipewire::pipewire(const int &fd) {
 	context = ::pw_context_new(::pw_main_loop_get_loop(loop), props, 0);
 	DIE(!context);
 	core = ::pw_context_connect_fd(context, fd, nullptr, 0);
+	node = nodeid;
 	DIE(!core);
 }
 
@@ -153,7 +150,7 @@ pipewire::connect(void) {
 										&fps::min,
 										&fps::max)
 		));
-	::pw_stream_connect(stream, PW_DIRECTION_INPUT, PW_ID_ANY,
+	::pw_stream_connect(stream, PW_DIRECTION_INPUT, node,
 						static_cast<pw_stream_flags>(sflags), &params, 1);
 	pw_loop_enter(::pw_main_loop_get_loop(loop));
 

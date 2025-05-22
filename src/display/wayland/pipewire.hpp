@@ -24,7 +24,7 @@ struct cbdata {
 	bool start = false;
 }	data;
 
-	pipewire(const int &);
+	pipewire(const int &, const uint32_t &);
 
 	~pipewire(void);
 
@@ -40,6 +40,7 @@ private:
 	pw_core *core;
 	pw_stream *stream = nullptr;
 	spa_hook listener;
+	uint32_t node;
 };
 
 }
