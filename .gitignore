@@ -41,3 +41,6 @@ deskx*
 # Debian packages
 deb/deskx*
 *.deb
+
+# nix packages
+result
