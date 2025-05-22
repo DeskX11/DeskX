@@ -1,4 +1,5 @@
 
+#include <macro.hpp>
 #if OS == WIN
 	#include <time.h>
 	struct timeval {
@@ -10,7 +11,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <macro.hpp>
 #include <net.hpp>
 
 namespace net {
