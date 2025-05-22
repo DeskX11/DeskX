@@ -85,7 +85,7 @@ get(const byte type = 0);
 #elif OS == OSX
 	#include <display/osx.hpp>
 #elif OS == WIN
-	#include <display/win.hpp>
+	#include <display/d3d11.hpp>
 #endif
 
 #endif

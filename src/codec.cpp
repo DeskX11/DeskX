@@ -31,7 +31,7 @@ init(const size_t &x, const size_t &y, const byte num) {
 	pixnum = x * y;
 	width  = x;
 	height = y;
-	xmax = x;
+	xmax   = x;
 }
 
 void
@@ -67,6 +67,8 @@ max(void) {
 
 bool
 get(display::pixs &pixs, byte *buff, uint64_t &size) {
+	RET_IF(!pixs.ptr, false);
+
 	size_t shift, skip = 0, x = 0;
 	bool flag = false;
 	rgb color, tmp;

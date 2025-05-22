@@ -26,7 +26,7 @@ typedef unsigned char byte;
 #define INFO(txt)		  { std::cout << (logo_ ? LOGO : "") << std::string((txt)) << ".\n"; logo_ = false; }
 #define DIE(cond)		  if ((cond)) { std::cout << (logo_ ? LOGO : "") << "\033[1;31mCrash\033[0m:\t" \
 										"In file " __FILE__ ", line " <<  __LINE__ << ".\n"; ::exit(1); }
-#define RGB		byte{0}
+#define RGB0	byte{0}
 #define RGBA	byte{1}
 #define BGRA	byte{2}
 #define OSX		1

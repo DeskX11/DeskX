@@ -34,7 +34,7 @@ events(void) {
 	
 	while (alive) {
 		ret = net::recv(buff, display::emsg);
-		BREAK_IF(ret == net::status::ERROR);
+		BREAK_IF(ret == net::status::FAIL);
 		NEXT_DELAY(ret == net::status::EMPTY);
 		elist.set(buff);
 		disp->set(elist);

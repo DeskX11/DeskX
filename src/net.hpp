@@ -19,7 +19,7 @@ struct skipxy {
 };
 
 enum status {
-	OK, EMPTY, ERROR
+	OK, EMPTY, FAIL
 };
 
 void

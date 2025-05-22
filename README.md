@@ -108,7 +108,7 @@ Fast data transfer depends on two factors: the size of the transmitted packet an
 * `libx11-dev libxtst-dev libxext-dev libsdl2-dev libportal-dev libpipewire-0.3-dev`
 
 #### MacOS
-* `g++ make`
+* `clang make`
 * `libsdl2`
 
 #### Windows

@@ -1,5 +1,7 @@
-VERSION = 2.0.1
-FLAGS = -I./src -Ofast -lpthread `sdl2-config --cflags --libs` -fno-exceptions -std=c++17 -DVERSION="\"$(VERSION)\""
+VERSION = 2.0.2
+INCLUDE = -I./src
+SDL2  = $(shell sdl2-config --cflags --libs)
+FLAGS = $(INCLUDE) -Ofast -lpthread $(SDL2) -fno-exceptions -std=c++17 -DVERSION="\"$(VERSION)\""
 
 ifeq ($(shell uname -s), Linux)
 	DISPLAY = ./src/display/x11.cpp ./src/display/wayland.cpp ./src/display/wayland/*.cpp
@@ -9,7 +11,7 @@ else ifeq ($(shell uname -s), Darwin)
 	LIBS 	=
 else
 	DISPLAY = ./src/display/win.cpp
-	LIBS 	=
+	LIBS 	= -ld3d11
 endif
 
 all:

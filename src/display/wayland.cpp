@@ -218,10 +218,10 @@ wayland::set(const events &arg) {
 
 	::xdp_session_pointer_position(session, node, x, y);
 	for (size_t i = 0; i < MAXKEYS; i++) {	
-		BREAK_IF(arg.buttons[i].type == display::keys::types::NO_TYPE);
+		BREAK_IF(arg.buttons[i].type == keys::types::NO_TYPE);
 		key = arg.buttons[i].key;
 
-		if (arg.buttons[i].type <= display::keys::types::MOUSE_DOWN) {
+		if (arg.buttons[i].type <= keys::types::MOUSE_DOWN) {
 			switch (key) {
 			case 1:	 key = 0x110;
 					 break;

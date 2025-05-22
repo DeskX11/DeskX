@@ -1,4 +1,11 @@
 
+#if OS == WIN
+	#include <time.h>
+	struct timeval {
+		long tv_sec;
+		long tv_usec;
+	};
+#endif
 #include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -129,7 +136,7 @@ recv(byte *buff, int size) {
 		shift += ret;
 	}
 
-	return ret == size ? status::OK : status::ERROR;
+	return ret == size ? status::OK : status::FAIL;
 }
 
 status
@@ -138,12 +145,12 @@ send(const byte *buff, int size) {
 	int shift = 0, ret;
 
 	while ((ret = ::send(fd, buff + shift, size, MSG_NOSIGNAL)) != size) {
-		RET_IF(ret < 1, status::ERROR);
+		RET_IF(ret < 1, status::FAIL);
 		size  -= ret;
 		shift += ret;
 	}
 
-	return ret == size ? status::OK : status::ERROR;
+	return ret == size ? status::OK : status::FAIL;
 }
 
 void

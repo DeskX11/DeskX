@@ -15,7 +15,7 @@ get(const byte type) {
 #elif OS == OSX
 	return reinterpret_cast<tpl *>(new osx);
 #elif OS == WIN
-	return reinterpret_cast<tpl *>(new win);
+	return reinterpret_cast<tpl *>(new d3d11);
 #else
 	return nullptr;
 #endif

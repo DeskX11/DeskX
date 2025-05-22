@@ -21,7 +21,7 @@ screen(void) {
 
 	while (alive) {
 		status = net::recv(reinterpret_cast<byte *>(&size), 8);
-		BREAK_IF(status == net::status::ERROR);
+		BREAK_IF(status == net::status::FAIL);
 		NEXT_DELAY(status == net::status::EMPTY || size < 2);
 
 		status = net::recv(buff, size);

@@ -180,7 +180,7 @@ rgb::encode(const bool &flag, byte *buff) const {
 
 	auto it = p24to8.find(rgb24());
 	return it != p24to8.end() ? enc::small(it->second, num, buff)
-							  : enc::middle  (rgb14(), num, buff);
+							  : enc::middle(rgb14(), num, buff);
 }
 
 size_t

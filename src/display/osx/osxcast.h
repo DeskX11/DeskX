@@ -4,10 +4,12 @@
 
 #ifndef __OBJC__
 extern "C" {
+#else
+#define DIE(cond) if ((cond)) exit(1)
 #endif
 
 void *
-osxcast_init(const char *);
+osxcast_init(int *);
 
 void
 osxcast_close(void *);

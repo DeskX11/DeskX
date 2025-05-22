@@ -217,14 +217,14 @@ x11::set(const events &arg) {
 
 	::XTestFakeMotionEvent(disp, 0, x, y, 0);
 	for (size_t i = 0; i < MAXKEYS; i++) {
-		BREAK_IF(arg.buttons[i].type == display::keys::types::NO_TYPE);
+		BREAK_IF(arg.buttons[i].type == keys::types::NO_TYPE);
 		key = arg.buttons[i].key;
 		it = keymap.find(key);
 		if (it != keymap.end()) {
 			key = it->second;
 		}
 
-		if (arg.buttons[i].type > display::keys::types::MOUSE_DOWN) {
+		if (arg.buttons[i].type > keys::types::MOUSE_DOWN) {
 			key = ::XKeysymToKeycode(disp, key);
 			::XTestFakeKeyEvent(disp, key, arg.buttons[i].type % 2 != 0, 0);
 			continue;
