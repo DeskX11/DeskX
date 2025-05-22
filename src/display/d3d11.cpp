@@ -316,7 +316,10 @@ d3d11::set(const events &arg) {
 
 	inp.ki.dwExtraInfo = 0;
 	inp.ki.time = 0;
+	inp.mi.time = 0;
 	inp.ki.wVk  = 0;
+	inp.mi.dx   = 0;
+	inp.mi.dy   = 0;
 	::SetCursorPos(std::min(static_cast<UINT>(arg.mouse.first),  outdesc.ModeDesc.Width  - 1),
 				   std::min(static_cast<UINT>(arg.mouse.second), outdesc.ModeDesc.Height - 1));
 
@@ -340,9 +343,6 @@ d3d11::set(const events &arg) {
 			}
 			
 			inp.mi.dwFlags = key;
-			inp.mi.time = 0;
-			inp.mi.dx = 0;
-			inp.mi.dy = 0;
 			::SendInput(1, &inp, size);
 			continue;
 		}

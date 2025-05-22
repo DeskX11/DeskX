@@ -2,16 +2,18 @@
 #include <macro.hpp>
 #if OS == WIN
 	#include <time.h>
-	struct timeval {
-		long tv_sec;
-		long tv_usec;
-	};
 #endif
 #include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net.hpp>
+#if OS == WIN
+struct timeval {
+	long tv_sec, tv_usec;
+
+};
+#endif
 
 namespace net {
 namespace {

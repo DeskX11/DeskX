@@ -21,8 +21,9 @@ After setting the variables (for more information you can read xauth, Xsecurity 
 Under these conditions, it is enough to specify the mandatory argument `--port=` to start working. Example: `./deskx server --port=1489`. You can also use other server-side arguments that were listed above. You can also specify which IP address of the computer you want to use via the `--bind-ip=` argument, if you want to use all available addresses, do not specify this argument. Example: `./deskx server --port=1489 --bind-ip=127.0.0.1`. After launching, you need to give the program permission to broadcast the screen and control the keyboard and mouse as in the screenshot below:
 <p align="center"><img src="/docs/imgs/wl.png"></p>
 
-#### macOS
-Under development.
 
 #### Windows
+Under these conditions, it is enough to specify the mandatory argument `--port=` to start working. Example: `./deskx.exe server --port=1489`. You can also use other server-side arguments that were listed above. You can also specify which IP address of the computer you want to use via the `--bind-ip=` argument, if you want to use all available addresses, do not specify this argument. Example: `./deskx.exe server --port=1489 --bind-ip=127.0.0.1`. After launching, a window may appear asking for permission to obtain rights. You need to allow it.
+
+#### macOS
 Under development.

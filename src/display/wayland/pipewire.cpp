@@ -61,7 +61,7 @@ info(void *data, uint32_t id, const spa_pod *param) {
 	ptr->scr.width  = format.info.raw.size.width;
 	ptr->scr.height = format.info.raw.size.height;
 	switch (format.info.raw.format) {
-	case SPA_VIDEO_FORMAT_RGB:	ptr->scr.format = RGB;
+	case SPA_VIDEO_FORMAT_RGB:	ptr->scr.format = RGB0;
 								ptr->scr.shift  = 3;
 								return;
 	case SPA_VIDEO_FORMAT_BGRx:

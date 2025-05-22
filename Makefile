@@ -10,7 +10,7 @@ else ifeq ($(shell uname -s), Darwin)
 	DISPLAY = ./src/display/osx.cpp
 	LIBS 	=
 else
-	DISPLAY = ./src/display/win.cpp
+	DISPLAY = ./src/display/d3d11.cpp
 	LIBS 	= -ld3d11
 endif
 
