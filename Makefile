@@ -1,7 +1,6 @@
 VERSION = 2.0.2
-INCLUDE = -I./src
 SDL2  = $(shell sdl2-config --cflags --libs)
-FLAGS = $(INCLUDE) -Ofast -lpthread $(SDL2) -fno-exceptions -std=c++17 -DVERSION="\"$(VERSION)\""
+FLAGS = -I./src -Ofast -lpthread $(SDL2) -fno-exceptions -std=c++17 -DVERSION="\"$(VERSION)\""
 
 ifeq ($(shell uname -s), Linux)
 	DISPLAY = ./src/display/x11.cpp ./src/display/wayland.cpp ./src/display/wayland/*.cpp
@@ -14,8 +13,14 @@ else
 	LIBS 	= -ld3d11
 endif
 
+NAME = deskx
+SRC  = ./src/*.cpp ./src/codec/*.cpp ./src/client/*.cpp $(DISPLAY) $(FLAGS) $(LIBS) -o $(NAME)
+
 all:
-	g++ ./src/*.cpp ./src/codec/*.cpp ./src/client/*.cpp $(DISPLAY) $(FLAGS) $(LIBS) -o deskx
+	g++ $(SRC)
+
+test:
+	g++ -DTEST $(SRC)-test
 
 dpkg:
 	cd deb; ./build.sh $(VERSION)
