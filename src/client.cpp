@@ -33,7 +33,6 @@ screen(void) {
 
 		codec::set(windowbuff, buff, size);
 		refresh = true;
-		gui::refresh();
 #ifdef TEST
 	::exit(0);
 #endif	
@@ -140,11 +139,11 @@ start(const args &args) {
 	
 	INFO(NOTE"Ready to use");
 	while (alive) {
-		/*if (refresh && !gui::refresh()) {
+		if (refresh && !gui::refresh()) {
 			INFO(ERR"Can't refresh surface");
 			alive = false;
 			break;
-		}*/
+		}
 
 		refresh = false;
 		flags = gui::events(elist);
