@@ -12,12 +12,12 @@ get(const byte type) {
 	case X11:	  return reinterpret_cast<tpl *>(new x11);
 	default:	  return nullptr;
 	}
+#elif OS == WIN
+	return reinterpret_cast<tpl *>(new d3d11);
 #elif OS == OSX
 	INFO(WARN"OSX casting isn't supported yet. If you need this "
 			 "function - please open ticket on github page");
 	return nullptr;
-#elif OS == WIN
-	return reinterpret_cast<tpl *>(new d3d11);
 #else
 	return nullptr;
 #endif

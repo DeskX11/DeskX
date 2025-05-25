@@ -80,12 +80,12 @@ get(const byte type = 0);
 }
 
 #if OS == LINUX
-	#include <display/x11.hpp>
-	#include <display/wayland.hpp>
+#include <display/x11.hpp>
+#include <display/wayland.hpp>
 #elif OS == OSX
-	#include <display/osx.hpp>
+#include <display/osx.hpp>
 #elif OS == WIN
-	#include <display/d3d11.hpp>
+#include <display/d3d11.hpp>
 #endif
 
 #endif

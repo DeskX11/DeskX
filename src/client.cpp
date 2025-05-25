@@ -9,8 +9,8 @@
 namespace client {
 namespace {
 
+bool alive, refresh = false;
 byte *windowbuff;
-bool alive;
 
 void
 screen(void) {
@@ -32,13 +32,15 @@ screen(void) {
 		}
 
 		codec::set(windowbuff, buff, size);
-		if (!gui::refresh()) {
-			INFO(ERR"Can't refresh surface");
-			alive = false;
-			break;
-		}
+		refresh = true;
+		gui::refresh();
+#ifdef TEST
+	::exit(0);
+#endif	
 	}
-
+#ifdef TEST
+	::exit(1);
+#endif
 	delete[] buff;
 }
 
@@ -138,9 +140,16 @@ start(const args &args) {
 	
 	INFO(NOTE"Ready to use");
 	while (alive) {
+		/*if (refresh && !gui::refresh()) {
+			INFO(ERR"Can't refresh surface");
+			alive = false;
+			break;
+		}*/
+
+		refresh = false;
 		flags = gui::events(elist);
 		BREAK_IF(flags.second);
-		NEXT_DELAY(!flags.first);
+		NEXT_IF(!flags.first);
 
 		elist.mouse.first  *= skip.x;
 		elist.mouse.second *= skip.y;

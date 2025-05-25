@@ -41,7 +41,7 @@ info(void *data, uint32_t id, const spa_pod *param) {
 	pipewire::cbdata *ptr = reinterpret_cast<pipewire::cbdata *>(data);
 	spa_video_info format;
 
-	RET_IF(ptr->error || (param == nullptr || id != SPA_PARAM_Format));
+	RET_IF(ptr->error || param == nullptr || id != SPA_PARAM_Format);
 	if (::spa_format_parse(param, &format.media_type,
 						   &format.media_subtype) < 0) {
 		INFO(WARN"Can't get screen format info");
@@ -131,7 +131,7 @@ pipewire::connect(void) {
 	::pw_stream_add_listener(stream, &listener, &cbs, ptr);
 	auto b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
 	const spa_pod *params = reinterpret_cast<spa_pod *>(spa_pod_builder_add_object(&b,
-		SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
+		SPA_TYPE_OBJECT_Format,		SPA_PARAM_EnumFormat,
 		SPA_FORMAT_mediaType,		SPA_POD_Id(SPA_MEDIA_TYPE_video),
 		SPA_FORMAT_mediaSubtype,	SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
 		SPA_FORMAT_VIDEO_format,	SPA_POD_CHOICE_ENUM_Id(6,

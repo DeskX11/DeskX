@@ -67,7 +67,6 @@ refresh(void) {
 std::pair<bool, bool>
 events(display::events &e) {
 	bool emouse = false, ekeys = false, quit = false;
-	SDL_Event event;
 	int x, y, num = 0;
 
 	e.clear();
@@ -79,6 +78,7 @@ events(display::events &e) {
 	xp = x;
 	yp = y;
 
+	SDL_Event event;
 	while (::SDL_PollEvent(&event) && num < 5) {
 		bool flag = false;
 		switch (event.type) {

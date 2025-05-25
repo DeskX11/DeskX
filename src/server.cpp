@@ -19,9 +19,11 @@ session_type(void) {
 #if OS != LINUX
 	return 0;
 #else
-	const char *env = ::getenv("XDG_SESSION_TYPE");
-	RET_IF(::strcmp("wayland", env) == 0, WAYLAND);
-	return ::strcmp("x11", env) == 0 ? X11 : TTY;
+	std::string env(::getenv("XDG_SESSION_TYPE"));
+	for (auto &c : env) {
+		c = std::tolower(c);
+	}
+	return env == "wayland" ? WAYLAND : (env == "x11" ? X11 : TTY);
 #endif
 }
 
@@ -117,8 +119,13 @@ start(const args &args) {
 
 			status = net::send(buff, size + 8);
 			BREAK_IF(status != net::status::OK);
+#ifdef TEST
+	::exit(0);
+#endif
 		}
-
+#ifdef TEST
+	::exit(1);
+#endif
 		alive = false;
 		keys.join();
 		codec::free();
