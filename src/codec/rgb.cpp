@@ -101,9 +101,10 @@ top(const byte *ptr, uint32_t &color, uint16_t &size, const byte *scr) {
 
 void
 rgb::set(const byte *ptr) {
-	r = ptr[0];
-	g = ptr[1];
-	b = ptr[2];
+	// Converting to LimitedRGB colors.
+	r = static_cast<byte>((ptr[0] / 255.) * 220 + 16);
+	g = static_cast<byte>((ptr[1] / 255.) * 220 + 16);
+	b = static_cast<byte>((ptr[2] / 255.) * 220 + 16);
 	size_ = 1;
 }
 
