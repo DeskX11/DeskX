@@ -1,6 +1,7 @@
 
 #include <thread>
 #include <cmath>
+#include <inttypes.h>
 #include <macro.hpp>
 #include <net.hpp>
 #include <codec.hpp>
@@ -22,6 +23,8 @@ screen(void) {
 	while (alive) {
 		status = net::recv(reinterpret_cast<byte *>(&size), 8);
 		BREAK_IF(status == net::status::FAIL);
+
+		size = ntohll(size);
 		NEXT_DELAY(status == net::status::EMPTY || size < 2);
 
 		status = net::recv(buff, size);

@@ -1,6 +1,5 @@
 
 #include <cmath>
-#include <netinet/in.h>
 #include <codec/rgb.hpp>
 #include <codec/palette.hpp>
 

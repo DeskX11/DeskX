@@ -32,6 +32,7 @@ compress(byte *buff, byte *src, uint64_t size) {
 		len = ::LZ4_compress_default(from, to + 4, partlen, len);
 		DIE(len <= 0);
 		tmp = len;
+		tmp = htonl(tmp);
 		::memcpy(to, &tmp, 4);
 
 		from += partlen;
@@ -53,6 +54,7 @@ decompress(byte *buff, byte *src, uint64_t size, int limit) {
 
 	while (size) {
 		::memcpy(&part, from, 4);
+		part = ntohl(part);
 		DIE(!part);
 
 		size -= part + 4;

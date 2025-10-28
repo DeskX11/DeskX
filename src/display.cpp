@@ -43,24 +43,24 @@ events::clear(void) {
 
 void
 events::pack(byte *ptr) {
-	*reinterpret_cast<uint16_t *>(ptr + 2) = mouse.second;
-	*reinterpret_cast<uint16_t *>(ptr)     = mouse.first;
+	*reinterpret_cast<uint16_t *>(ptr + 2) = htons(mouse.second);
+	*reinterpret_cast<uint16_t *>(ptr)     = htons(mouse.first);
 	ptr += 4;
 
 	for (size_t i = 0; i < MAXKEYS; i++, ptr += 5) {
-		*reinterpret_cast<uint32_t *>(ptr) = buttons[i].key;
+		*reinterpret_cast<uint32_t *>(ptr) = htonl(buttons[i].key);
 		ptr[4] = buttons[i].type;
 	}
 }
 
 void
 events::set(const byte *ptr) {
-	mouse.second = *reinterpret_cast<const uint16_t *>(ptr + 2);
-	mouse.first  = *reinterpret_cast<const uint16_t *>(ptr);
+	mouse.second = ntohs(*reinterpret_cast<const uint16_t *>(ptr + 2));
+	mouse.first  = ntohs(*reinterpret_cast<const uint16_t *>(ptr));
 	ptr += 4;
 
 	for (size_t i = 0; i < MAXKEYS; i++, ptr += 5) {
-		buttons[i].key = *reinterpret_cast<const uint32_t *>(ptr);
+		buttons[i].key  = ntohl(*reinterpret_cast<const uint32_t *>(ptr));
 		buttons[i].type = static_cast<const keys::types>(ptr[4]);
 	}
 }

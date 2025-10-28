@@ -5,7 +5,6 @@
 #endif
 #include <netinet/tcp.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net.hpp>
 #if OS == WIN

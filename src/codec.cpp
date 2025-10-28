@@ -168,9 +168,10 @@ get(display::pixs &pixs, byte *msg, uint64_t &size) {
 	std::swap(prev, next);
 	RET_IF(!size, false);
 
-	size = lz4::compress(msg, lz4m, size);
-	start = false;
-	std::swap(prev, next);
+	size = lz4::compress(msg + 8, lz4m, size);
+	const uint64_t num = htonll(size);
+	::memcpy(msg, &num, 8);
+	size += 8;
 	return true;
 }
 

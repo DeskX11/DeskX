@@ -99,12 +99,11 @@ start(const args &args) {
 		byte *buff = new byte[codec::max() + 8];
 		DIE(!buff);
 
-		byte *msg = buff + 8;	
-		auto &size = *reinterpret_cast<uint64_t *>(buff);
 		std::chrono::milliseconds delay(1000 / usr.fps);
 		auto now = NOW_MSEC, prev = now;
 		display::pixs pixs;
 		net::status status;
+		uint64_t size;
 
 		while (alive) {
 			now = NOW_MSEC;
@@ -115,9 +114,9 @@ start(const args &args) {
 
 			prev = now;
 			disp->refresh(pixs);
-			NEXT_IF(!codec::get(pixs, msg, size));
+			NEXT_IF(!codec::get(pixs, buff, size));
 
-			status = net::send(buff, size + 8);
+			status = net::send(buff, size);
 			BREAK_IF(status != net::status::OK);
 #ifdef TEST
 	::exit(0);

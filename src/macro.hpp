@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <netinet/in.h>
 #include <unistd.h>
 
 inline bool logo_ = true;
@@ -57,6 +58,16 @@ typedef unsigned char byte;
 #define WAYLAND	byte{2}
 #else
 #define OS	OTHER
+#endif
+
+#if !defined(htonll)
+#if __BIG_ENDIAN__
+#define htonll(num) (num)
+#define ntohll(num) (num)
+#else
+#define htonll(num) (((uint64_t)htonl((num) & 0xFFFFFFFF) << 32) | htonl((num) >> 32))
+#define ntohll(num) (((uint64_t)ntohl((num) & 0xFFFFFFFF) << 32) | ntohl((num) >> 32))
+#endif
 #endif
 
 #endif

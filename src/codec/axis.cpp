@@ -1,5 +1,4 @@
 
-#include <netinet/in.h>
 #include <codec/axis.hpp>
 
 namespace codec {
