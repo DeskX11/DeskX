@@ -14,7 +14,7 @@ void
 skip(const byte, const byte);
 
 void
-alloc(void);
+allocate(void);
 
 void
 free(void);
@@ -26,7 +26,7 @@ bool
 get(display::pixs &, byte *, uint64_t &);
 
 void
-set(byte *win, byte *buff, const uint64_t &);
+set(byte *win, byte *buff, uint64_t &);
 
 }
 

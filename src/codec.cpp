@@ -1,6 +1,7 @@
 
 #include <string.h>
 #include <codec.hpp>
+#include <codec/lz4.hpp>
 #include <codec/rgb.hpp>
 #include <codec/axis.hpp>
 
@@ -10,10 +11,11 @@
 namespace codec {
 namespace {
 
-size_t width, height, pixnum, xmax;
+size_t width, height, pixnum, xmax, framemax;
 byte delta, skipx, skipy;
 byte *prev = nullptr;
 byte *next = nullptr;
+byte *lz4m = nullptr;
 bool start;
 
 byte
@@ -26,12 +28,17 @@ is(const byte s) {
 void
 init(const size_t &x, const size_t &y, const byte num) {
 	DIE(x > SCR_X_MAX || y > SCR_Y_MAX);
-	start = true;
-	delta = num;
 	pixnum = x * y;
+	framemax = pixnum * 3;
+	DIE(!framemax);
+
+	start  = true;
+	delta  = num;
 	width  = x;
 	height = y;
 	xmax   = x;
+	lz4m   = new byte[framemax];
+	DIE(!lz4m);
 }
 
 void
@@ -42,12 +49,9 @@ skip(const byte x, const byte y) {
 }
 
 void
-alloc(void) {
-	const size_t size = pixnum * 3;
-	DIE(!size);
-
-	prev = new byte[size];
-	next = new byte[size];
+allocate(void) {
+	prev = new byte[framemax];
+	next = new byte[framemax];
 	DIE(!prev || !next);
 }
 
@@ -66,7 +70,7 @@ max(void) {
 }
 
 bool
-get(display::pixs &pixs, byte *buff, uint64_t &size) {
+get(display::pixs &pixs, byte *msg, uint64_t &size) {
 	RET_IF(!pixs.ptr, false);
 
 	size_t shift, skip = 0, x = 0;
@@ -78,6 +82,7 @@ get(display::pixs &pixs, byte *buff, uint64_t &size) {
 	color.set(pixs.ptr);
 	byte *pbuff = prev;
 	byte *nbuff = next;
+	byte *buff  = lz4m;
 
 	auto step = [&pixs, &pbuff, &nbuff, &x](size_t &num) {
 		for (byte i = 0; i <= skipx; i++) {
@@ -161,22 +166,30 @@ get(display::pixs &pixs, byte *buff, uint64_t &size) {
 
 	start = false;
 	std::swap(prev, next);
-	return size > 0;
+	RET_IF(!size, false);
+
+	size = lz4::compress(msg, lz4m, size);
+	start = false;
+	std::swap(prev, next);
+	return true;
 }
 
 void
-set(byte *win, byte *buff, const uint64_t &size) {
+set(byte *win, byte *msg, uint64_t &size) {
+	size = lz4::decompress(lz4m, msg, size, framemax);
+	DIE(!size);
+
 	size_t tmp;
 	for (uint64_t num = 0; num < size;) {
-		if (is(*buff) == AXIS) {
-			tmp = axis::decode(width, 4, &buff, &win);
+		if (is(*lz4m) == AXIS) {
+			tmp = axis::decode(width, 4, &lz4m, &win);
 			num += tmp;
 			NEXT_IF(tmp);
 			INFO(WARN"Shift is broken, skip frame");
 			return;
 		}
 
-		tmp = rgb::decode(width, 4, &buff, &win);
+		tmp = rgb::decode(width, 4, &lz4m, &win);
 		num += tmp;
 		if (!tmp) {
 			INFO(WARN"Line is broken, skip frame");

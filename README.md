@@ -37,7 +37,7 @@ Controlling screen resolution and picture sizes is entirely dependent on the ser
 ```bash
 # Debian/Ubuntu
 sudo apt install libx11-dev libxtst-dev libxext-dev libportal-dev libpipewire-0.3-dev \
-	libsdl2-dev
+	libsdl2-dev liblz4-dev
 git clone https://github.com/DeskX11/DeskX/
 cd DeskX
 make
@@ -64,7 +64,7 @@ make
 ```bash
 # Debian/Ubuntu
 sudo apt install libx11-dev libxtst-dev libxext-dev libportal-dev libpipewire-0.3-dev \
-	libsdl2-dev
+	libsdl2-dev liblz4-dev
 git clone https://github.com/DeskX11/DeskX/
 cd DeskX
 make dpkg
@@ -105,7 +105,7 @@ Fast data transfer depends on two factors: the size of the transmitted packet an
 ## Requirements for compilation.
 #### Linux
 * `g++ make`
-* `libx11-dev libxtst-dev libxext-dev libsdl2-dev libportal-dev libpipewire-0.3-dev`
+* `libx11-dev libxtst-dev libxext-dev libsdl2-dev libportal-dev libpipewire-0.3-dev liblz4-dev`
 
 #### MacOS
 * `clang make`

@@ -5,7 +5,7 @@ The process of preparing a server for remote control will be described below. Al
 ## Step 1: Downloading the necessary components
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install xfce4 g++ make libx11-dev libxtst-dev libxext-dev libportal-dev libpipewire-0.3-dev git libsdl2-dev
+sudo apt install xfce4 g++ make libx11-dev libxtst-dev libxext-dev libportal-dev libpipewire-0.3-dev git libsdl2-dev liblz4-dev
 git clone https://github.com/DeskX11/DeskX
 ```
 Here we download the window manager ABAB and the necessary components for compiling DeskX. You can skip downloading them and just install the ready-made deb package from [here](https://github.com/DeskX11/DeskX/releases).

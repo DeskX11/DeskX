@@ -95,11 +95,11 @@ start(const args &args) {
 
 		codec::init(res.width, res.height, usr.delta);
 		codec::skip(skip.x, skip.y);
-		codec::alloc();
+		codec::allocate();
 		byte *buff = new byte[codec::max() + 8];
-		byte *msg = buff + 8;
 		DIE(!buff);
-		
+
+		byte *msg = buff + 8;	
 		auto &size = *reinterpret_cast<uint64_t *>(buff);
 		std::chrono::milliseconds delay(1000 / usr.fps);
 		auto now = NOW_MSEC, prev = now;

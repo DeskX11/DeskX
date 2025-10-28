@@ -1,6 +1,6 @@
-VERSION = 2.0.2
+VERSION = 2.0.3 beta
 SDL2  = $(shell sdl2-config --cflags --libs)
-FLAGS = -I./src -Ofast -lpthread $(SDL2) -fno-exceptions -std=c++17 -DVERSION="\"$(VERSION)\""
+FLAGS = -I./src -Ofast -lpthread $(SDL2) -llz4 -fno-exceptions -std=c++17 -DVERSION="\"$(VERSION)\""
 
 ifeq ($(shell uname -s), Linux)
 	DISPLAY = ./src/display/x11.cpp ./src/display/wayland.cpp ./src/display/wayland/*.cpp
