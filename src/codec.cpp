@@ -179,17 +179,18 @@ set(byte *win, byte *msg, uint64_t &size) {
 	size = lz4::decompress(lz4m, msg, size, framemax);
 	DIE(!size);
 
+	byte *buff = lz4m;
 	size_t tmp;
 	for (uint64_t num = 0; num < size;) {
-		if (is(*lz4m) == AXIS) {
-			tmp = axis::decode(width, 4, &lz4m, &win);
+		if (is(*buff) == AXIS) {
+			tmp = axis::decode(width, 4, &buff, &win);
 			num += tmp;
 			NEXT_IF(tmp);
 			INFO(WARN"Shift is broken, skip frame");
 			return;
 		}
 
-		tmp = rgb::decode(width, 4, &lz4m, &win);
+		tmp = rgb::decode(width, 4, &buff, &win);
 		num += tmp;
 		if (!tmp) {
 			INFO(WARN"Line is broken, skip frame");
