@@ -7,12 +7,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <net.hpp>
-#if OS == WIN
-struct timeval {
-	long tv_sec, tv_usec;
-
-};
-#endif
 
 namespace net {
 namespace {

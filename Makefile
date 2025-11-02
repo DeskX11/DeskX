@@ -13,8 +13,7 @@ else
 	LIBS 	= -ld3d11
 endif
 
-NAME = deskx
-SRC  = ./src/*.cpp ./src/codec/*.cpp ./src/client/*.cpp $(DISPLAY) $(FLAGS) $(LIBS) -o $(NAME)
+SRC = ./src/*.cpp ./src/codec/*.cpp ./src/client/*.cpp $(DISPLAY) $(FLAGS) $(LIBS) -o deskx
 
 all:
 	g++ $(SRC)

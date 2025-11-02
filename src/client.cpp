@@ -1,7 +1,6 @@
 
 #include <thread>
 #include <cmath>
-#include <inttypes.h>
 #include <macro.hpp>
 #include <net.hpp>
 #include <codec.hpp>
