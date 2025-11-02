@@ -50,8 +50,12 @@ make
 
 # Windows
 # To compile, you need to use Cygwin + MinGW. During the installation of Cygwin, you
-# need to select the components g++, make, SDL2, git. After open Cygwin terminal and
-# follow the instructions below:
+# need to select the components g++, make, SDL2, git.
+#
+# You can install required packages like so:
+# setup-x86_64.exe -q -P gcc-g++,git,make,libSDL2-devel,libSDL2_2.0_0,liblz4-devel,liblz4_1,lz4,mingw64-x86_64-SDL2,mingw64-x86_64-gcc-g++,mingw64-x86_64-lz4
+#
+# Next, open the Cygwin terminal and compile the program:
 git clone https://github.com/DeskX11/DeskX/
 cd DeskX
 make
